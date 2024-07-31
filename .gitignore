@@ -1,3 +1,6 @@
 .env
 __pycache__/*
 frontend/src/store
+node_modules
+package-lock.json
+package.json
