@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, unset_jwt_cookies
-from mysql_connector import db, bcrypt
-from app.models import User
+from app.models import User, db, bcrypt
 user_routes = Blueprint('user_routes', __name__)
 
 @user_routes.route('/register', methods=['POST'])

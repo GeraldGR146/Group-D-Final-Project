@@ -1,14 +1,11 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import timedelta
 import os
+from app.models import db, bcrypt, setup_relationships
 
 # Initialize SQLAlchemy, Bcrypt, and JWT instances
-db = SQLAlchemy()
-bcrypt = Bcrypt()
 jwt = JWTManager()
 
 def init_db(app):
@@ -30,6 +27,7 @@ def init_db(app):
     
     with app.app_context():
         db.create_all()
+        setup_relationships()
 
 def get_session():
     database_uri = (

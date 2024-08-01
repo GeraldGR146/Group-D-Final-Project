@@ -1,14 +1,18 @@
 from . import db
+from sqlalchemy import Column, Integer, String, Text, DECIMAL, Enum, TIMESTAMP, ForeignKey
+from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 
 class Product(db.Model):
     __tablename__ = 'Products'
-    product_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    seller_id = db.Column(db.Integer, db.ForeignKey('Users.user_id'), nullable=False)
-    store_id = db.Column(db.Integer, db.ForeignKey('Stores.store_id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text)
-    price = db.Column(db.Numeric(10, 2), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
-    product_type = db.Column(db.Enum('standard', 'premium'), nullable=False)
-    image_url = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    product_id = Column(Integer, primary_key=True, autoincrement=True)
+    seller_id = Column(Integer, ForeignKey('Users.user_id'), nullable=False)
+    store_id = Column(Integer, ForeignKey('Stores.store_id'), nullable=False)
+    name = Column(String(100), nullable=False)
+    description = Column(Text)
+    price = Column(DECIMAL(10, 2), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    product_type = Column(Enum('standard', 'premium'), nullable=False)
+    image_url = Column(String(255))
+    created_at = Column(TIMESTAMP, server_default=func.now())

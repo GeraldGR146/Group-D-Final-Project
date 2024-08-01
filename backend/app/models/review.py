@@ -1,10 +1,14 @@
 from . import db
+from sqlalchemy import Column, Integer, Text, TIMESTAMP, ForeignKey, CheckConstraint
+from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 
 class Review(db.Model):
     __tablename__ = 'Reviews'
-    review_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('Products.product_id'), nullable=False)
-    consumer_id = db.Column(db.Integer, db.ForeignKey('Users.user_id'), nullable=False)
-    rating = db.Column(db.Integer, nullable=False)
-    comment = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    review_id = Column(Integer, primary_key=True, autoincrement=True)
+    product_id = Column(Integer, ForeignKey('Products.product_id'), nullable=False)
+    consumer_id = Column(Integer, ForeignKey('Users.user_id'), nullable=False)
+    rating = Column(Integer, CheckConstraint('rating BETWEEN 1 AND 5'))
+    comment = Column(Text)
+    created_at = Column(TIMESTAMP, server_default=func.now())
