@@ -1,5 +1,5 @@
 import React from 'react';
-import Product from '../models/Product';
+import Product from './Product';
 
 class ProductInfo extends React.Component {
   render() {

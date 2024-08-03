@@ -1,6 +1,8 @@
 import React from 'react';
 import ProductInfo from './components/ProductInfo';
 import Product from './models/Product';
+import Product from './components/Product/Product';
+
 
 function App() {
   const sampleProduct = new Product(
