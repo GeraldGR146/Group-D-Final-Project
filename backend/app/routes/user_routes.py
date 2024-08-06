@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, unset_jwt_cookies
 from app.models import User, db, bcrypt
-user_routes = Blueprint('user_routes', __name__)
 
-@user_routes.route('/register', methods=['POST'])
+user_bp = Blueprint('user_routes', __name__)
+
+@user_bp.route('/register', methods=['POST'])
 def register():
     username = request.form.get('username')
     email = request.form.get('email')
@@ -15,8 +16,10 @@ def register():
     
     if User.query.filter_by(email=email).first():
         return jsonify({'message': 'Email already registered'}), 400
+
+    user_id = User.create_unique_user_id(role)
     
-    new_user = User(username=username, email=email, role=role)
+    new_user = User(user_id=user_id, username=username, email=email, role=role)
     new_user.set_password(password)
     
     db.session.add(new_user)
@@ -24,7 +27,7 @@ def register():
     
     return jsonify({'message': 'User registered successfully'}), 201
 
-@user_routes.route('/login', methods=['POST'])
+@user_bp.route('/login', methods=['POST'])
 def login():
     email = request.form.get('email')
     password = request.form.get('password')
@@ -34,19 +37,24 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({'message': 'Invalid credentials'}), 401
     
-    access_token = create_access_token(identity={'user_id': user.user_id, 'username': user.username, 'role': user.role})
+    access_token = create_access_token(
+        identity={
+            'user_id': user.user_id,
+            'username': user.username,
+            'role': user.role
+        }
+    )
     
     return jsonify({'access_token': access_token}), 200
 
-@user_routes.route('/logout', methods=['POST'])
+@user_bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
-    # Unset the JWT cookies and inform the client
     response = jsonify({'message': 'Logout successful'})
     unset_jwt_cookies(response)
     return response, 200
 
-@user_routes.route('/me', methods=['GET'])
+@user_bp.route('/me', methods=['GET'])
 @jwt_required()
 def get_user():
     current_user = get_jwt_identity()
@@ -57,8 +65,10 @@ def get_user():
         return jsonify({'message': 'User not found'}), 404
     
     return jsonify({
+        'user_id': user.user_id,
         'username': user.username,
         'email': user.email,
         'role': user.role,
         'created_at': user.created_at
     }), 200
+
