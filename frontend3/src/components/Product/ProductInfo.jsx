@@ -1,5 +1,28 @@
 import React from 'react';
+import Rating from '../Review/Rating';
+import CommentForm from '../Review/CommentForm';
+import ReviewList from '../Review/ReviewList';
 
+class review extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      reviews: [],
+      rating: 0,
+    };
+  }
+
+  handleRatingChange = (rating) => {
+    this.setState({ rating });
+  };
+
+  handleReviewSubmit = (review) => {
+    this.setState((prevState) => ({
+      reviews: [...prevState.reviews, review],
+      rating: 0, // Reset rating after submission
+    }));
+  };
+}
 class ProductInfo extends React.Component {
   render() {
     const { product } = this.props;
@@ -18,6 +41,13 @@ class ProductInfo extends React.Component {
             </div>
             <div className="mt-4">
               <span className="text-gray-500">Location: </span>{product.location}
+            </div>
+            <div className="mt-4">
+              <span>        
+                <Rating rating={this.state.rating} onRate={this.handleRatingChange} />
+                <CommentForm rating={this.state.rating} onSubmit={this.handleReviewSubmit} />
+                <ReviewList reviews={this.state.reviews} />
+              </span>
             </div>
           </div>
         </div>
