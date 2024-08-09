@@ -34,6 +34,10 @@ def create_product(store_id):
     if errors:
         return jsonify({'errors': errors}), 400
 
+    existing_product = Product.query.filter_by(store_id=store_id, name=data['name']).first()
+    if existing_product:
+        return jsonify({'error': 'A product with the same name already exists in this store.'}), 400
+
     product_id = Product.generate_product_id()
 
     try:

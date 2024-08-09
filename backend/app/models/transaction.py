@@ -12,7 +12,7 @@ class Transaction(db.Model):
     transaction_date = Column(TIMESTAMP, server_default=func.now())
     amount = Column(DECIMAL(10, 2), nullable=False)
     payment_method = Column(Enum('credit_card', 'debit_card', 'paypal', 'cash', 'cod'), nullable=False)
-    status = Column(Enum('pending', 'completed', 'failed'), nullable=False)
+    status = Column(Enum('Pending', 'Completed', 'Failed'), default= 'Pending')
     
     @staticmethod
     def generate_transaction_id():

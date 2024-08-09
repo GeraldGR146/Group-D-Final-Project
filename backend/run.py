@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from mysql_connector import init_db
 from dotenv import load_dotenv
 from app.routes import register_routes
@@ -8,6 +9,8 @@ load_dotenv()
 
 def create_app():
     app = Flask(__name__)
+
+    CORS(app)
     
     # Initialize the database and other components
     init_db(app)

@@ -1,10 +1,18 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models import db, Order, OrderItem, Product, Store
+from mysql_connector import get_session
 from sqlalchemy.exc import SQLAlchemyError
-from app.routes.auth import role_required
+from app.models import db, Order, OrderItem, Product, Store, Cart, CartItem
 
 order_bp = Blueprint('order_bp', __name__)
+
+def clear_cart(session, user_id):
+    cart = session.query(Cart).filter_by(consumer_id=user_id).first()
+    if cart:
+        items = session.query(CartItem).filter_by(cart_id=cart.cart_id).all()
+        for item in items:
+            session.delete(item)
+        session.commit()
 
 @order_bp.route('/orders', methods=['GET'])
 @jwt_required()
@@ -13,66 +21,82 @@ def get_orders():
     orders = Order.query.filter_by(consumer_id=user_id).all()
     return jsonify([order.to_dict() for order in orders])
 
-@order_bp.route('/orders/<string:order_id>', methods=['GET'])
-@jwt_required()
-def get_order(order_id):
-    user_id = get_jwt_identity()['user_id']
-    order = Order.query.filter_by(order_id=order_id, consumer_id=user_id).first()
-    if order is None:
-        return jsonify({'error': 'Order not found'}), 404
-    return jsonify(order.to_dict())
-
 @order_bp.route('/orders', methods=['POST'])
 @jwt_required()
 def create_order():
-    user_id = get_jwt_identity()['user_id']
-    delivery_method = request.form.get('delivery_method')
-    items = request.form.getlist('items')  # Expecting items to be a list of dictionaries
+    session = get_session()
+    consumer_id = get_jwt_identity()['user_id']
+    delivery_method = request.form.get('delivery_method', 'Delivery')  # Default to 'Delivery' if not provided
 
-    if not all([delivery_method, items]):
-        return jsonify({'message': 'Missing fields'}), 400
+    if delivery_method not in ['Pickup', 'Delivery']:
+        return jsonify({'error': 'Invalid delivery method'}), 400
 
     try:
+        cart = session.query(Cart).filter_by(consumer_id=consumer_id).first()
+        if not cart:
+            return jsonify({'error': 'Cart not found or does not belong to the user'}), 404
+
+        cart_items = session.query(CartItem).filter_by(cart_id=cart.cart_id).all()
+        if not cart_items:
+            return jsonify({'error': 'Cart is empty'}), 400
+
         order_id = Order.create_unique_order_id()
         total_amount = 0
+        store_id = None
+        seller_id = None
+
+        first_item = cart_items[0]
+        product = session.query(Product).filter_by(product_id=first_item.product_id).first()
+        if product:
+            store_id = product.store_id
+            store = session.query(Store).filter_by(store_id=store_id).first()
+            if store:
+                seller_id = store.seller_id
+        else:
+            return jsonify({'error': 'Product not found'}), 404
 
         new_order = Order(
             order_id=order_id,
-            consumer_id=user_id,
-            store_id=None,  # Leave this as None, or handle store logic as required
+            consumer_id=consumer_id,
+            seller_id=seller_id,
+            store_id=store_id,
+            cart_id=cart.cart_id,
             delivery_method=delivery_method,
-            status='pending',
-            total_amount=total_amount  # Placeholder, will be updated below
+            status='Pending',
+            total_amount=total_amount
         )
-        db.session.add(new_order)
+        session.add(new_order)
 
-        for item in items:
-            product_name = item.get('product_name')
-            quantity = int(item.get('quantity'))
-            product = Product.query.filter_by(name=product_name).first()
-
+        for item in cart_items:
+            product = session.query(Product).filter_by(product_id=item.product_id).first()
             if not product:
-                return jsonify({'error': f'Product with name {product_name} not found'}), 400
+                return jsonify({'error': f'Product with ID {item.product_id} not found'}), 404
 
-            price = product.price * quantity
+            price = product.price * item.quantity
             total_amount += price
 
-            item_id = OrderItem.generate_item_id()
-            new_order_item = OrderItem(
-                order_item_id=item_id,
+            order_item = OrderItem(
+                order_item_id=OrderItem.generate_item_id(),
                 order_id=order_id,
-                product_id=product.product_id,  # Use the product ID here
-                quantity=quantity,
+                product_id=item.product_id,
+                quantity=item.quantity,
                 price=price
             )
-            db.session.add(new_order_item)
+            session.add(order_item)
 
         new_order.total_amount = total_amount
-        db.session.commit()
+        session.commit()
+
+        # Clear the cart after successful order creation
+        clear_cart(session, consumer_id)
+
         return jsonify(new_order.to_dict()), 201
     except SQLAlchemyError as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 400
+        session.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        session.close()
+
 
 @order_bp.route('/orders/<string:order_id>/cancel', methods=['PUT'])
 @jwt_required()
@@ -82,11 +106,11 @@ def cancel_order(order_id):
     if order is None:
         return jsonify({'error': 'Order not found'}), 404
     
-    if order.status == 'completed':
+    if order.status == 'Completed':
         return jsonify({'error': 'Completed orders cannot be cancelled'}), 400
 
     try:
-        order.status = 'cancelled'
+        order.status = 'Cancelled'
         db.session.commit()
         return jsonify(order.to_dict()), 200
     except SQLAlchemyError as e:
@@ -97,52 +121,47 @@ def cancel_order(order_id):
 @jwt_required()
 def update_order(order_id):
     user_id = get_jwt_identity()['user_id']
-    order = Order.query.filter_by(order_id=order_id, consumer_id=user_id).first()
+    user_role = get_jwt_identity()['role']
+
+    # Fetch the order
+    order = Order.query.filter_by(order_id=order_id).first()
     if order is None:
         return jsonify({'error': 'Order not found'}), 404
-    
-    if order.status != 'pending':
-        return jsonify({'error': 'Only pending orders can be updated'}), 400
 
-    delivery_method = request.form.get('delivery_method')
-    status = request.form.get('status')
-    items = request.form.getlist('items')  # Expecting items to be a list of dictionaries
+    # Prevent updates if the order is already Completed or Cancelled
+    if order.status in ['Completed', 'Cancelled']:
+        return jsonify({'error': f'Cannot update an order that is already {order.status}'}), 400
 
-    if not items:
-        return jsonify({'message': 'No items provided'}), 400
+    # If the user is the consumer
+    if user_role == 'consumer':
+        if order.consumer_id != user_id:
+            return jsonify({'error': 'You do not have permission to update this order'}), 403
+        
+        # Update delivery method
+        delivery_method = request.form.get('delivery_method')
+        if delivery_method:
+            if delivery_method not in ['Pickup', 'Delivery']:
+                return jsonify({'error': 'Invalid delivery method'}), 400
+            order.delivery_method = delivery_method
+
+    # If the user is the seller
+    elif user_role == 'seller':
+        if order.seller_id != user_id:
+            return jsonify({'error': 'You do not have permission to update this order'}), 403
+
+        # Update order status
+        status = request.form.get('status')
+        if status:
+            if status not in ['Processing', 'Shipped', 'Delivered', 'Completed', 'Cancelled']:
+                return jsonify({'error': 'Invalid status'}), 400
+            order.status = status
+
+    else:
+        return jsonify({'error': 'Invalid user role'}), 403
 
     try:
-        # Clear existing items
-        OrderItem.query.filter_by(order_id=order_id).delete()
-
-        total_amount = 0
-        for item in items:
-            product_name = item.get('product_name')
-            quantity = int(item.get('quantity'))
-            product = Product.query.filter_by(name=product_name).first()
-
-            if not product:
-                return jsonify({'error': f'Product with name {product_name} not found'}), 400
-
-            price = product.price * quantity
-            total_amount += price
-
-            item_id = OrderItem.generate_item_id()
-            new_order_item = OrderItem(
-                order_item_id=item_id,
-                order_id=order_id,
-                product_id=product.product_id,  # Use the product ID here
-                quantity=quantity,
-                price=price
-            )
-            db.session.add(new_order_item)
-
-        order.total_amount = total_amount
-        order.delivery_method = delivery_method or order.delivery_method
-        order.status = status or order.status
-
         db.session.commit()
-        return jsonify(order.to_dict())
+        return jsonify(order.to_dict()), 200
     except SQLAlchemyError as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 400

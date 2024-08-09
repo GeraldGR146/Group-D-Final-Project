@@ -1,15 +1,15 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models import db, Promotion, Order
+from app.models import db, Promotion, Store, Order
 from datetime import datetime
 from app.routes.auth import role_required
 
 promotion_bp = Blueprint('promotion_routes', __name__)
 
-@promotion_bp.route('/promotions', methods=['POST'])
+@promotion_bp.route('/stores/<string:store_id>/promotions', methods=['POST'])
 @jwt_required()
 @role_required('seller')  # Ensure only sellers can create promotions
-def create_promotion():
+def create_promotion(store_id):
     current_user = get_jwt_identity()
     code = request.form.get('code')
     discount_percentage = request.form.get('discount_percentage')
@@ -26,8 +26,13 @@ def create_promotion():
         if start_date > end_date:
             return jsonify({'message': 'Start date must be before end date'}), 400
         
+        store = Store.query.get(store_id)
+        if not store or store.seller_id != current_user['user_id']:
+            return jsonify({'message': 'Unauthorized or Store not found'}), 403
+
         new_promotion = Promotion(
             promotion_id=Promotion.generate_promotion_id(),
+            store_id=store_id,
             seller_id=current_user['user_id'],
             code=code,
             discount_percentage=float(discount_percentage),
@@ -51,6 +56,7 @@ def get_promotion(promotion_id):
 
     return jsonify({
         'promotion_id': promotion.promotion_id,
+        'store_id': promotion.store_id,
         'seller_id': promotion.seller_id,
         'code': promotion.code,
         'discount_percentage': float(promotion.discount_percentage),
@@ -72,7 +78,8 @@ def update_promotion(promotion_id):
     if not promotion:
         return jsonify({'message': 'Promotion not found'}), 404
 
-    if promotion.seller_id != current_user['user_id']:
+    store = Store.query.get(promotion.store_id)
+    if store.seller_id != current_user['user_id']:
         return jsonify({'message': 'Unauthorized'}), 403
 
     if code:
@@ -101,7 +108,8 @@ def delete_promotion(promotion_id):
     if not promotion:
         return jsonify({'message': 'Promotion not found'}), 404
 
-    if promotion.seller_id != current_user['user_id']:
+    store = Store.query.get(promotion.store_id)
+    if store.seller_id != current_user['user_id']:
         return jsonify({'message': 'Unauthorized'}), 403
 
     try:
@@ -112,9 +120,9 @@ def delete_promotion(promotion_id):
         db.session.rollback()
         return jsonify({'message': str(e)}), 500
 
-@promotion_bp.route('/sellers/<string:seller_id>/promotions', methods=['GET'])
-def get_seller_promotions(seller_id):
-    promotions = Promotion.query.filter_by(seller_id=seller_id).all()
+@promotion_bp.route('/stores/<string:store_id>/promotions', methods=['GET'])
+def get_store_promotions(store_id):
+    promotions = Promotion.query.filter_by(store_id=store_id).all()
 
     result = [{
         'promotion_id': promotion.promotion_id,

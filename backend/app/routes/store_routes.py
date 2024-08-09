@@ -10,9 +10,8 @@ store_bp = Blueprint('store_bp', __name__)
 @jwt_required()
 @role_required('seller')
 def get_stores():
-    seller_id = get_jwt_identity()  # Get the current user's ID
+    seller_id = get_jwt_identity()
 
-    # Ensure seller_id is a string
     if isinstance(seller_id, dict):
         seller_id = seller_id.get('user_id', None)
 
@@ -41,15 +40,15 @@ def get_store(store_id):
 @jwt_required()
 @role_required('seller')
 def create_store():
-    name = request.form.get('name')
+    store_name = request.form.get('store_name')
     location = request.form.get('location')
     description = request.form.get('description')
 
     # Debug print statements
-    print(f"Received Data: Name={name}, Location={location}, Description={description}")
+    print(f"Received Data: Store Name={store_name}, Location={location}, Description={description}")
 
-    if not name or not location:
-        return jsonify({'message': 'Name and location are required'}), 400
+    if not store_name or not location:
+        return jsonify({'message': 'Store name and location are required'}), 400
 
     try:
         # Extract seller_id from JWT identity
@@ -67,7 +66,7 @@ def create_store():
         new_store = Store(
             store_id=store_id,
             seller_id=seller_id,  # Ensure this is a string or integer
-            name=name,
+            store_name=store_name,
             location=location,
             description=description
         )
@@ -91,13 +90,13 @@ def update_store(store_id):
     if store is None:
         return jsonify({'error': 'Store not found'}), 404
 
-    name = request.form.get('name')
+    store_name = request.form.get('store_name')
     location = request.form.get('location')
     description = request.form.get('description')
 
     try:
-        if name:
-            store.name = name
+        if store_name:
+            store.store_name = store_name
         if location:
             store.location = location
         if description:

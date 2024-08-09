@@ -10,10 +10,11 @@ class Order(db.Model):
     consumer_id = Column(String(50), ForeignKey('Users.user_id'), nullable=False)
     seller_id = Column(String(50), ForeignKey('Users.user_id'), nullable=False)
     store_id = Column(String(50), ForeignKey('Stores.store_id'), nullable=False)
+    cart_id = Column(String(50), ForeignKey('Carts.cart_id'), nullable=False)
     order_date = Column(TIMESTAMP, server_default=func.now())
     total_amount = Column(Float, nullable=False)
-    delivery_method = Column(Enum('pickup', 'delivery'), nullable=False)
-    status = Column(Enum('pending', 'completed', 'cancelled'), nullable=False)
+    delivery_method = Column(Enum('Pickup', 'Delivery', name='delivery_method'), default='Delivery')
+    status = Column(Enum('Pending', 'Paid', 'Processing', 'Shipped', 'Delivered', 'Completed', 'Cancelled', name='order_status'), default='Pending')
 
     @staticmethod
     def generate_order_id():
@@ -32,11 +33,9 @@ class Order(db.Model):
             'consumer_id': self.consumer_id,
             'seller_id': self.seller_id,
             'store_id': self.store_id,
-            'order_date': self.order_date,
-            'total_amount': self.total_amount,
             'delivery_method': self.delivery_method,
             'status': self.status,
-            'items': [item.to_dict() for item in self.items]
+            'total_amount': self.total_amount,
         }
 
 class OrderItem(db.Model):
