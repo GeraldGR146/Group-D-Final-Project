@@ -14,8 +14,6 @@ def create_app():
     
     # Initialize the database and other components
     init_db(app)
-
-    # Register all routes
     register_routes(app)
 
     return app
