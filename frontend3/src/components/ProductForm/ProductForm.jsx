@@ -1,4 +1,7 @@
+// src/components/ProductForm.js
+
 import React, { Component } from 'react';
+import ProductService from '../services/ProductService';
 
 class ProductForm extends Component {
   constructor(props) {
@@ -8,7 +11,7 @@ class ProductForm extends Component {
       description: '',
       price: '',
       location: '',
-      category: 'standard',
+      category: 'Standard',
       quantity: 0,
       image: null,
     };
@@ -27,10 +30,41 @@ class ProductForm extends Component {
     this.setState({ image: event.target.files[0] });
   }
 
-  handleSubmit(event) {
+  async handleSubmit(event) {
     event.preventDefault();
-    // Here you can handle the data submission to the database
-    console.log(this.state);
+
+    const formData = new FormData();
+    formData.append('name', this.state.name);
+    formData.append('description', this.state.description);
+    formData.append('price', this.state.price);
+    formData.append('location', this.state.location);
+    formData.append('product_type', this.state.category);
+    formData.append('quantity', this.state.quantity);
+    if (this.state.image) {
+      formData.append('image', this.state.image);
+    }
+
+    try {
+      const newProduct = await ProductService.createProduct(formData);
+      console.log('Product created successfully:', newProduct);
+
+      if (this.props.onProductCreated) {
+        this.props.onProductCreated(newProduct);
+      }
+
+      // Reset form
+      this.setState({
+        name: '',
+        description: '',
+        price: '',
+        location: '',
+        category: 'Standard',
+        quantity: 0,
+        image: null,
+      });
+    } catch (error) {
+      console.error('Error creating product:', error);
+    }
   }
 
   render() {
@@ -84,8 +118,8 @@ class ProductForm extends Component {
             onChange={this.handleChange}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           >
-            <option value="standard">Standard</option>
-            <option value="premium">Premium</option>
+            <option value="Standard">Standard</option>
+            <option value="Premium">Premium</option>
           </select>
         </div>
         <div className="mb-4">

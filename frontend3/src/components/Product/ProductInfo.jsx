@@ -1,15 +1,28 @@
+// src/components/ProductInfo.js
+
 import React from 'react';
+import ProductService from '../services/ProductService';
 import Rating from '../Review/Rating';
 import CommentForm from '../Review/CommentForm';
 import ReviewList from '../Review/ReviewList';
 
-class review extends React.Component {
+class ProductInfo extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      product: null,
       reviews: [],
       rating: 0,
     };
+  }
+
+  async componentDidMount() {
+    try {
+      const product = await ProductService.getProductById(this.props.productId);
+      this.setState({ product });
+    } catch (error) {
+      console.error('Error fetching product:', error);
+    }
   }
 
   handleRatingChange = (rating) => {
@@ -22,10 +35,13 @@ class review extends React.Component {
       rating: 0, // Reset rating after submission
     }));
   };
-}
-class ProductInfo extends React.Component {
+
   render() {
-    const { product } = this.props;
+    const { product } = this.state;
+    if (!product) {
+      return <div>Loading...</div>;
+    }
+
     return (
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl">
         <div className="md:flex">
