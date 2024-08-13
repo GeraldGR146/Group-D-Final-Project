@@ -107,6 +107,7 @@ const MainBody = ({ selectedSection, userProfile, addProduct }) => {
 const SellerProfile = () => {
     const [userProfile, setUserProfile] = useState(null);
     const [selectedSection, setSelectedSection] = useState('my_info');
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchUserProfile = async () => {
@@ -170,6 +171,12 @@ const SellerProfile = () => {
             updatedStores[storeIndex].products.push(`product${updatedStores[storeIndex].products.length + 1}`);
             return { ...prevProfile, stores: updatedStores };
         });
+
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
     };
 
     if (!userProfile) {
@@ -187,6 +194,24 @@ const SellerProfile = () => {
             <div className="w-3/4">
                 <MainBody selectedSection={selectedSection} userProfile={userProfile} addProduct={addProduct} />
             </div>
+
+            <Modal
+                isOpen={isModalOpen}
+                onRequestClose={closeModal}
+                contentLabel="Product Form Modal"
+                className="fixed inset-0 flex items-center justify-center z-50"
+                overlayClassName="fixed inset-0 bg-gray-900 bg-opacity-75 z-40"
+            >
+                <div className="relative bg-white rounded-lg shadow-lg max-w-lg w-full p-6">
+                    <button 
+                        onClick={closeModal} 
+                        className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        &times;
+                    </button>
+                    <ProductForm />
+                </div>
+            </Modal>
         </div>
     );
 };

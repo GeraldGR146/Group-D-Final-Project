@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 
 class ProductForm extends Component {
   constructor(props) {
@@ -11,11 +12,14 @@ class ProductForm extends Component {
       category: 'standard',
       quantity: 0,
       image: null,
+      // Additional state for tracking submission status or errors
+      isSubmitting: false,
+      errors: null,
     };
 
     this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
     this.handleImageChange = this.handleImageChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   handleChange(event) {
@@ -27,10 +31,37 @@ class ProductForm extends Component {
     this.setState({ image: event.target.files[0] });
   }
 
-  handleSubmit(event) {
+  async handleSubmit(event) {
     event.preventDefault();
-    // Here you can handle the data submission to the database
-    console.log(this.state);
+    this.setState({ isSubmitting: true, errors: null });
+
+    const formData = new FormData();
+    formData.append('name', this.state.name);
+    formData.append('description', this.state.description);
+    formData.append('price', this.state.price);
+    formData.append('location', this.state.location);
+    formData.append('category', this.state.category);
+    formData.append('quantity', this.state.quantity);
+    if (this.state.image) {
+      formData.append('image', this.state.image);
+    }
+
+    try {
+      const response = await axios.post('/api/checkout', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('token')}`, // Assuming you have JWT token stored
+        },
+      });
+
+      console.log(response.data);
+      // Handle success, maybe clear the form or redirect
+    } catch (error) {
+      console.error(error);
+      this.setState({ errors: error.response ? error.response.data : 'An error occurred' });
+    } finally {
+      this.setState({ isSubmitting: false });
+    }
   }
 
   render() {
@@ -109,9 +140,11 @@ class ProductForm extends Component {
         <button
           type="submit"
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          disabled={this.state.isSubmitting}
         >
-          Submit
+          {this.state.isSubmitting ? 'Submitting...' : 'Submit'}
         </button>
+        {this.state.errors && <p className="text-red-500 text-xs italic mt-4">{this.state.errors}</p>}
       </form>
     );
   }
