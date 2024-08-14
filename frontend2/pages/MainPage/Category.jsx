@@ -18,7 +18,6 @@ const Category = () => {
                     <CategoryCard title="Discount Product 2" content="Description of Discount product 2" />
                     <CategoryCard title="Discount Product 3" content="Description of Discount product 3" />
                     <CategoryCard title="Discount Product 4" content="Description of Discount product 4" />
-                    
                 </div>
                 <BestSeller/>
                 <HowToOrder/>

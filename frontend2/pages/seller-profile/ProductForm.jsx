@@ -92,6 +92,7 @@ class ProductForm extends Component {
           <input
             type="number"
             name="price"
+            placeholder='Enter price in IDR'
             value={this.state.price}
             onChange={this.handleChange}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
