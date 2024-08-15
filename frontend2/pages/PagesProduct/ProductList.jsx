@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types'; // Import PropTypes
 import Product from './Product';
 
 class ProductList extends React.Component {
@@ -7,7 +8,7 @@ class ProductList extends React.Component {
     this.state = {
       categoryFilter: 'All',
       locationFilter: 'All',
-      nameFilter: '',  // Menambahkan state untuk filter nama produk
+      nameFilter: '',  // State for filtering by product name
     };
   }
 
@@ -24,23 +25,24 @@ class ProductList extends React.Component {
   };
 
   render() {
-    const { products } = this.props;
+    const { products } = this.props; // Destructure the correct prop name
     const { categoryFilter, locationFilter, nameFilter } = this.state;
-
-    const filteredProducts = products.filter(product => 
+  
+    // Ensure products is an array
+    const filteredProducts = Array.isArray(products) ? products.filter(product => 
       (categoryFilter === 'All' || product.category === categoryFilter) &&
       (locationFilter === 'All' || product.location === locationFilter) &&
-      (nameFilter === '' || product.name.toLowerCase().includes(nameFilter.toLowerCase()))  // Implementasi filter nama produk
-    );
-
+      (nameFilter === '' || product.name.toLowerCase().includes(nameFilter.toLowerCase()))  // Implement name filter
+    ) : [];
+  
     if (!filteredProducts.length) {
       return <div>No products available.</div>;
     }
-
+  
     return (
       <div className="max-w-lg mx-auto p-4">
         <h2 className="text-2xl font-bold mb-4">Product List</h2>
-
+  
         {/* Name Filter Input */}
         <div className="mb-4">
           <label htmlFor="nameFilter" className="mr-2">Product Name:</label>
@@ -75,7 +77,7 @@ class ProductList extends React.Component {
             Premium
           </button>
         </div>
-
+  
         <div className="mb-4">
           <label htmlFor="locationFilter" className="mr-2">Location:</label>
           <select id="locationFilter" value={locationFilter} onChange={this.handleLocationFilterChange}>
@@ -84,7 +86,7 @@ class ProductList extends React.Component {
             <option value="Location2">Location2</option>
           </select>
         </div>
-
+  
         <ul className="space-y-4">
           {filteredProducts.map(product => (
             <li key={product.product_id} className="p-4 bg-white shadow-md rounded">
@@ -101,5 +103,18 @@ class ProductList extends React.Component {
     );
   }
 }
+
+// Define prop types
+ProductList.propTypes = {
+  products: PropTypes.arrayOf(PropTypes.shape({
+    product_id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+    description: PropTypes.string,
+    price: PropTypes.number.isRequired,
+    quantity: PropTypes.number.isRequired,
+    category: PropTypes.string.isRequired,
+    location: PropTypes.string.isRequired,
+  })).isRequired,
+};
 
 export default ProductList;
