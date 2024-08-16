@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types'; // Import PropTypes
 import Product from './Product';
+import ProductCard from './ProductCart';
 
 class ProductList extends React.Component {
   constructor(props) {
@@ -99,6 +100,12 @@ class ProductList extends React.Component {
             </li>
           ))}
         </ul>
+            {/* Product Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProducts.map(product => (
+            <ProductCard key={product.product_id} product={product} />
+          ))}
+        </div>
       </div>
     );
   }
