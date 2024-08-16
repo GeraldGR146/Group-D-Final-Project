@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import ProfilePage from './ProfilePage';
-import WishlistPage from './WishlistPage';
-import MyOrders from './MyOrders';
-import ShoppingCartPage from './ShoopingCartPage';
+import WishlistPage from '../me/wishlist';
+import MyOrders from '../me/my_orders';
+import ShoppingCartPage from '../me/shopping_cart/shopping_cart';
+import handleLogout from './Logout';
 
 const Sidebar = ({ username, setSelectedSection, selectedSection }) => {
     return (
@@ -68,6 +69,9 @@ const MainBody = ({ selectedSection, userProfile }) => {
             return <WishlistPage userProfile={userProfile} />;
         case 'shopping_cart':
             return <ShoppingCartPage userProfile={userProfile} />;
+        case 'logout':
+            return <handleLogout />;
+
         default:
             return <div className="p-4">Select a section from the menu.</div>;
     }

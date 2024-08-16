@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useRouter } from 'next/router';
 
 const Register = () => {
+    const [showPopup, setShowPopup] = useState(false);
+    const router = useRouter();
+
     const validationSchema = Yup.object().shape({
         username: Yup.string()
         .min(3, 'Username must be at least 3 characters')
@@ -30,16 +34,26 @@ const Register = () => {
     };
 
     const handleSubmit = (values) => {
+        const formData = new FormData();
+        formData.append('username', values.username);
+        formData.append('email', values.email);
+        formData.append('password', values.password);
+        formData.append('role', values.role);
+        formData.append('terms', values.terms);
+        formData.append('newsletter', values.newsletter);
+
         fetch('http://127.0.0.1:5000/register', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(values),
+            body: formData,
         })
         .then(response => response.json())
         .then(data => {
             console.log(data);
+            setShowPopup(true);
+            setTimeout(() => {
+                setShowPopup(false);
+                router.push('/login');
+            }, 3000); // Redirect after 3 seconds
         })
         .catch(error => {
             console.error('Error:', error);
@@ -48,6 +62,15 @@ const Register = () => {
 
     return (
         <div className="min-h-screen flex">
+            {showPopup && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-white p-6 rounded shadow-lg text-center">
+                        <h2 className="text-2xl font-semibold text-green-600">Register Successfully</h2>
+                        <p className="mt-4">You will be redirected to the login page shortly.</p>
+                    </div>
+                </div>
+            )}
+
             <div className="hidden lg:block w-1/2 bg-yellow-500">
                 <img
                     src="your-image-source-here.jpg"
@@ -61,30 +84,6 @@ const Register = () => {
                 <p className="mt-4 text-gray-600">
                     Sign up for free to access to any of our products
                 </p>
-
-                <button
-                    className="mt-8 w-full flex items-center justify-center py-3 border border-gray-300 rounded-md text-gray-900 hover:bg-gray-100"
-                    onClick={() => alert('Continue with Google')}
-                >
-                    <img
-                        src="google-logo-url"
-                        alt="Google logo"
-                        className="w-5 h-5 mr-2"
-                    />
-                    Continue With Google
-                </button>
-
-                <button
-                    className="mt-4 w-full flex items-center justify-center py-3 border border-gray-300 rounded-md text-gray-900 hover:bg-gray-100"
-                    onClick={() => alert('Continue with Twitter')}
-                >
-                    <img
-                        src="twitter-logo-url"
-                        alt="Twitter logo"
-                        className="w-5 h-5 mr-2"
-                    />
-                    Continue With Twitter
-                </button>
 
                 <Formik
                     initialValues={initialValues}
