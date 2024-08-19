@@ -4,13 +4,13 @@ class ProductService {
     constructor(baseUrl) {
       this.baseUrl = baseUrl;
     }
-  
+      
     async getAllProducts() {
-      const response = await fetch(`${this.baseUrl}/products`, {
+      const response = await fetch(`http://127.0.0.1:5000/products`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
+        // headers: {
+        //   'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        // },
       });
       if (!response.ok) {
         throw new Error('Failed to fetch products');
@@ -19,11 +19,11 @@ class ProductService {
     }
   
     async getProductById(productId) {
-      const response = await fetch(`${this.baseUrl}/products/${productId}`, {
+      const response = await fetch(`http://127.0.0.1:5000/products/${productId}`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
+        // headers: {
+        //   'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        // },
       });
       if (!response.ok) {
         throw new Error('Failed to fetch product');
@@ -32,7 +32,7 @@ class ProductService {
     }
   
     async createProduct(productData) {
-      const response = await fetch(`${this.baseUrl}/stores/${productData.store_id}/products`, {
+      const response = await fetch(`http://127.0.0.1:5000/stores/${productData.store_id}/products`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -48,7 +48,7 @@ class ProductService {
     }
   
     async updateProduct(productId, productData) {
-      const response = await fetch(`${this.baseUrl}/products/${productId}`, {
+      const response = await fetch(`http://127.0.0.1:5000/products/${productId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -64,7 +64,7 @@ class ProductService {
     }
   
     async deleteProduct(productId) {
-      const response = await fetch(`${this.baseUrl}/products/${productId}`, {
+      const response = await fetch(`http://127.0.0.1:5000/products/${productId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
