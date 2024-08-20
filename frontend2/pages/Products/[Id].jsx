@@ -1,23 +1,41 @@
 // pages/products/[id].jsx
+
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import ProductService from '../../src/services/ProductService';
+import ProductService from '../../services/ProductService';
+import ReviewService from '../../services/ReviewService';
+import ReviewForm from '../../components/ReviewForm';
+import ReviewList from '../../components/ReviewList';
 
 const ProductDetail = () => {
     const [product, setProduct] = useState(null);
+    const [reviews, setReviews] = useState([]);
     const router = useRouter();
     const { id } = router.query;
+    const reviewService = new ReviewService('http://127.0.0.1:5000');
 
     useEffect(() => {
         if (id) {
-            const fetchData = async () => {
+            const fetchProduct = async () => {
                 const fetchedProduct = await ProductService.fetchProductById(id);
                 setProduct(fetchedProduct);
             };
 
-            fetchData();
+            const fetchReviews = async () => {
+                const fetchedReviews = await reviewService.getReviews(id);
+                setReviews(fetchedReviews);
+            };
+
+            fetchProduct();
+            fetchReviews();
         }
     }, [id]);
+
+    const handleReviewSubmit = async ({ rating, comment }) => {
+        const token = 'your-auth-token'; // Replace with actual token logic
+        const newReview = await reviewService.createReview(id, rating, comment, token);
+        setReviews([newReview, ...reviews]);
+    };
 
     if (!product) {
         return <div>Loading...</div>;
@@ -34,6 +52,9 @@ const ProductDetail = () => {
                     <p className="text-gray-700">Available Quantity: {product.quantity}</p>
                 </div>
             </div>
+
+            <ReviewForm productId={id} onSubmit={handleReviewSubmit} />
+            <ReviewList reviews={reviews} />
         </div>
     );
 };
