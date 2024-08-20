@@ -1,53 +1,100 @@
 import React from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import axios from "axios";
 
 const ProfilePage = () => {
+    const formik = useFormik({
+        initialValues: {
+            username: '',
+            email: '',
+            password: ''
+        },
+        validationSchema: Yup.object({
+            username: Yup.string().required('Username is required'),
+            email: Yup.string().email('Invalid email address').required('Email is required'),
+            password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+        }),
+        onSubmit: async (values) => {
+            try {
+                const formData = new FormData();
+                formData.append('username', values.username);
+                formData.append('email', values.email);
+                formData.append('password', values.password);
+
+                const response = await axios.put('http://127.0.0.1:5000/me/update', formData, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                    }
+                });
+
+                alert('Profile updated successfully');
+            } catch (error) {
+                if (error.response && error.response.data) {
+                    console.error('Backend Error:', error.response.data);
+                    alert(error.response.data.message || 'Failed to update profile');
+                } else {
+                    console.error('Error:', error.message);
+                    alert('An error occurred. Please try again.');
+                }
+            }
+        },
+    });
+
     return (
         <div className="bg-gray-100 flex justify-center items-center min-h-screen">
             <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-3xl">
-                <h2 className="text-2xl font-bold text-gray-800">My Info</h2>
-                <p className="text-gray-500 mt-2">Add Address</p>
+                <h2 className="text-2xl font-bold text-gray-800">Update Profile</h2>
 
-                <form className="mt-6">
-                    <div className="grid grid-cols-2 gap-6">
+                <form className="mt-6" onSubmit={formik.handleSubmit}>
+                    <div className="grid grid-cols-1 gap-6">
                         <div>
-                            <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">First Name*</label>
-                            <input type="text" id="first-name" name="first-name" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="First Name" />
+                            <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username*</label>
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                placeholder="Username"
+                                value={formik.values.username}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                            {formik.touched.username && formik.errors.username ? (
+                                <div className="text-red-500 text-sm">{formik.errors.username}</div>
+                            ) : null}
                         </div>
                         <div>
-                            <label htmlFor="last-name" className="block text-sm font-medium text-gray-700">Last Name*</label>
-                            <input type="text" id="last-name" name="last-name" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Last Name" />
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email*</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                placeholder="Email"
+                                value={formik.values.email}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                            {formik.touched.email && formik.errors.email ? (
+                                <div className="text-red-500 text-sm">{formik.errors.email}</div>
+                            ) : null}
                         </div>
                         <div>
-                            <label htmlFor="country-region" className="block text-sm font-medium text-gray-700">Region*</label>
-                            <input type="text" id="country-region" name="country-region" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Country / Region" />
-                        </div>
-                        <div>
-                            <label htmlFor="street-address" className="block text-sm font-medium text-gray-700">Street Address*</label>
-                            <input type="text" id="street-address" name="street-address" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="House number and street name" />
-                        </div>
-                        <div>
-                            <label htmlFor="apt-suite-unit" className="block text-sm font-medium text-gray-700">Apt, suite, unit (optional)</label>
-                            <input type="text" id="apt-suite-unit" name="apt-suite-unit" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Apartment, suite, unit, etc. (optional)" />
-                        </div>
-                        <div>
-                            <label htmlFor="city" className="block text-sm font-medium text-gray-700">City*</label>
-                            <input type="text" id="city" name="city" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Town / City" />
-                        </div>
-                        <div>
-                            <label htmlFor="state" className="block text-sm font-medium text-gray-700">State*</label>
-                            <select id="state" name="state" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                <option>State</option>
-                                <option>Option 1</option>
-                                <option>Option 2</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone*</label>
-                            <input type="text" id="phone" name="phone" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Phone" />
-                        </div>
-                        <div>
-                            <label htmlFor="postal-code" className="block text-sm font-medium text-gray-700">Postal Code*</label>
-                            <input type="text" id="postal-code" name="postal-code" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Postal Code" />
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password*</label>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                placeholder="Password"
+                                value={formik.values.password}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                            {formik.touched.password && formik.errors.password ? (
+                                <div className="text-red-500 text-sm">{formik.errors.password}</div>
+                            ) : null}
                         </div>
                     </div>
 

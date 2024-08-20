@@ -15,10 +15,10 @@ const SellerCard = ({
 }) => {
     return (
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <img src={image_url} alt={name} className="w-full h-48 object-cover"/>
+            <img src={image_url || '/default-image.jpg'} alt={name} className="w-full h-48 object-cover"/>
             <div className="p-4">
                 <h2 className="text-xl font-bold mb-2">{name}</h2>
-                <p className="text-gray-700 mb-2">{description}</p>
+                <p className="text-gray-700 mb-2">{description || 'No description available'}</p>
                 <div className="flex justify-between items-center">
                     <span className="text-lg font-semibold text-green-500">Rp{price}</span>
                     <span className="text-sm text-gray-500">Qty: {quantity}</span>

@@ -11,6 +11,7 @@ const HandleLogout = async () => {
         sessionStorage.removeItem('access_token');
         sessionStorage.removeItem('role');
         sessionStorage.removeItem('username');
+        sessionStorage.removeItem('store_id');
 
         console.log('Logout successful');
 

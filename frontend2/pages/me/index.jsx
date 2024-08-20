@@ -1,57 +1,60 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { fetchUserProfile, fetchStores, fetchProductsByStore, handleSaveProduct, deleteProduct } from '../../components/Services/UserService';
 import SellerCard from '../../components/Card/SellerCard';
-import ProductForm from './product_form';
+import ProductForm from './new_product';
 import Transaction from './transactions_list';
 import ProfilePage from './profile';
-import Dashboard from './dashboard/dasboard';
+import Dashboard from './Dashboard';
 import HandleLogout from './Logout';
 import WishlistPage from './wishlist';
 import MyOrders from './my_orders';
-import ShoppingCartPage from './shopping_cart/shopping_cart';
+import ShoppingCartPage from './shopping_cart';
+import Sidebar from './sidebarRev';
+import { useRouter } from 'next/router';
 
 const Profile = () => {
     const [userProfile, setUserProfile] = useState(null);
     const [selectedSection, setSelectedSection] = useState('my_info');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [stores, setStores] = useState([]);
 
     useEffect(() => {
-        const fetchUserProfile = async () => {
+        const loadUserProfile = async () => {
             try {
-                const access_token = sessionStorage.getItem('access_token');
-
-                if (!access_token) {
-                    throw new Error("Access token is missing");
-                }
-
-                const { data } = await axios.get('http://127.0.0.1:5000/me', {
-                    headers: {
-                        Authorization: `Bearer ${access_token}`,
-                    },
-                });
-
-                // Store necessary user data in sessionStorage
-                sessionStorage.setItem('username', data.username);
-                sessionStorage.setItem('role', data.role);
-                sessionStorage.setItem('userProfile', JSON.stringify(data));
-
-                // Set the user profile state with the actual data
+                const data = await fetchUserProfile();
                 setUserProfile(data);
+                setLoading(false);
             } catch (error) {
                 setError("Failed to fetch user profile. Please try again later.");
-                console.error("Error fetching user profile:", error);
-            } finally {
                 setLoading(false);
             }
         };
 
-        fetchUserProfile();
+        loadUserProfile();
     }, []);
 
-    const addProduct = (storeIndex) => {
-        // Implement add product logic here
-        console.log(`Add product to store index: ${storeIndex}`);
+    const loadStores = async () => {
+        try {
+            const storesData = await fetchStores();
+            setStores(storesData);
+            console.log("Fetched stores:", storesData);
+        } catch (error) {
+            setError("Failed to fetch stores. Please try again later.");
+        }
+    };
+
+    const fetchProductsForStore = async (storeIndex) => {
+        try {
+            const storeId = stores[storeIndex].id; // Assuming each store has an `id` field
+            const products = await fetchProductsByStore(storeId);
+            const updatedStores = [...stores];
+            updatedStores[storeIndex].products = products; // Update the specific store's products
+            setStores(updatedStores);
+            console.log(`Fetched products for store ${storeId}:`, products);
+        } catch (error) {
+            setError("Failed to fetch products for this store. Please try again later.");
+        }
     };
 
     if (loading) {
@@ -62,90 +65,70 @@ const Profile = () => {
         return <div className="text-center mt-20 text-red-500">{error}</div>;
     }
 
+    if (!userProfile) {
+        return <div className="text-center mt-20">User profile not found.</div>;
+    }
+
     return (
         <div className="flex">
             <Sidebar
                 username={userProfile.username}
+                role={userProfile.role}
                 setSelectedSection={setSelectedSection}
                 selectedSection={selectedSection}
-                userProfile={userProfile}
+                stores={stores}
+                fetchStores={loadStores}
             />
             <div className="w-3/4">
-                <MainBody selectedSection={selectedSection} userProfile={userProfile} addProduct={addProduct} />
+                <MainBody selectedSection={selectedSection} stores={stores} fetchProductsForStore={fetchProductsForStore} />
             </div>
         </div>
     );
 };
 
-const Sidebar = ({ username, setSelectedSection, selectedSection, userProfile }) => (
-    <div className="w-64 bg-white p-4 rounded-lg shadow-md">
-        <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">Hello {username}</h2>
-            <p className="text-gray-500">Welcome to your Account</p>
-        </div>
-        <ul className="space-y-4">
-            {[
-                { label: '👤 My Info', section: 'my_info' },
-                { label: '📊 Dashboard', section: 'dashboard' },
-                { label: '📦 My Orders', section: 'my_orders' },
-                { label: '❤️ Wishlist', section: 'wishlist' },
-                { label: '🛒 Shopping Cart', section: 'shopping_cart' },
-                { label: '💸 Transactions', section: 'transactions' },
-            ].map(({ label, section }) => (
-                <li key={section}>
-                    <button
-                        className={`flex items-center text-gray-700 hover:text-gray-900 transition-colors ${
-                            selectedSection === section ? 'font-bold' : ''
-                        }`}
-                        onClick={() => setSelectedSection(section)}
-                    >
-                        <span className="mr-2">{label.split(' ')[0]}</span> {label.split(' ')[1]}
-                    </button>
-                </li>
-            ))}
-            {userProfile.stores.map((store, index) => (
-                <li key={index}>
-                    <button
-                        className={`flex items-center text-gray-700 hover:text-gray-900 transition-colors ${
-                            selectedSection === `store_${index}` ? 'font-bold' : ''
-                        }`}
-                        onClick={() => setSelectedSection(`store_${index}`)}
-                    >
-                        <span className="mr-2">🏪</span> {store.store_name}
-                    </button>
-                </li>
-            ))}
-            <li>
-                <button
-                    className="flex items-center text-gray-700 hover:text-gray-900 transition-colors"
-                    onClick={() => setSelectedSection('logout')}
-                >
-                    <span className="mr-2">🔓</span> Sign out
-                </button>
-            </li>
-        </ul>
-    </div>
-);
+const MainBody = ({ selectedSection, stores, onDeleteProduct, onEditProduct }) => {
+    const router = useRouter();
 
-const MainBody = ({ selectedSection, userProfile, addProduct }) => {
+    const handleAddProduct = () => {
+        router.push('/me/new_product'); // Navigate to the product form page
+    };
+
     if (selectedSection.startsWith('store_')) {
         const storeIndex = parseInt(selectedSection.split('_')[1]);
-        const store = userProfile.stores[storeIndex];
+        const store = stores[storeIndex];
+
         return (
             <div className="p-4">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">{store.store_name} - Products</h2>
                     <button
-                        className="bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-700"
-                        onClick={() => addProduct(storeIndex)}
+                        className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
+                        onClick={handleAddProduct}
                     >
-                        Add Product
+                        + Add New Product
                     </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {store.products.map((product, index) => (
-                        <SellerCard key={index} title={product} content={`Description of ${product}`} />
-                    ))}
+                    {store.products && store.products.length > 0 ? (
+                        store.products.map((product, index) => (
+                            <SellerCard 
+                                key={index} 
+                                product_id={product.product_id}
+                                seller_id={product.seller_id}
+                                store_id={product.store_id}
+                                name={product.name}
+                                description={product.description}
+                                price={product.price}
+                                quantity={product.quantity}
+                                product_type={product.product_type}
+                                image_url={product.image_url}
+                                onDelete={() => onDeleteProduct(product.product_id)}
+                                onEdit={() => onEditProduct(product.product_id)}
+                            />
+                        ))
+                    ) : (
+                        <div>No products available for this store.</div>
+                    )}
                 </div>
             </div>
         );
@@ -157,7 +140,7 @@ const MainBody = ({ selectedSection, userProfile, addProduct }) => {
         case 'dashboard':
             return <Dashboard />;
         case 'transactions':
-            return <Transaction transactions={userProfile.transactions} />;
+            return <Transaction transactions={stores.transactions} />;
         case 'wishlist':
             return <WishlistPage />;
         case 'logout':
