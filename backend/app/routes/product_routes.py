@@ -21,7 +21,7 @@ def validate_product_data(data):
 @product_bp.route('/stores/<store_id>/products', methods=['POST'])
 @jwt_required()
 @role_required('seller')
-def create_product(store_id):
+def create_product(store_id): # Seller Profile Store Page
     current_user = get_jwt_identity()
     seller_id = current_user['user_id']
 
@@ -29,7 +29,7 @@ def create_product(store_id):
     if not store:
         abort(400, 'Invalid store ID.')
 
-    data = request.form
+    data = request.json
     errors = validate_product_data(data)
     if errors:
         return jsonify({'errors': errors}), 400
@@ -45,11 +45,11 @@ def create_product(store_id):
             product_id=product_id,
             seller_id=seller_id,
             store_id=store_id,
-            name=data['name'],
+            name=data.get('name'),
             description=data.get('description', ''),
-            price=data['price'],
-            quantity=data['quantity'],
-            product_type=data['product_type'],
+            price=data.get('price'),
+            quantity=data.get('quantity'),
+            product_type=data.get('product_type'),
             image_url=data.get('image_url', ''),
         )
         db.session.add(new_product)
@@ -59,15 +59,20 @@ def create_product(store_id):
         db.session.rollback()
         abort(400, 'Error creating product. Check if seller_id and store_id are valid.')
 
+@product_bp.route('/stores/<store_id>/products', methods=['GET'])
+def get_products_by_store(store_id): # Store Products Page
+    products = Product.query.filter_by(store_id=store_id).all()
+    if not products:
+        return jsonify({'message': 'No products found for this store.'}), 404
+    return jsonify([product.to_dict() for product in products]), 200
+
 @product_bp.route('/products', methods=['GET'])
-@jwt_required()
-def get_all_products():
+def get_all_products(): # Product Page
     products = Product.query.all()
     return jsonify([product.to_dict() for product in products])
 
 @product_bp.route('/products/<product_id>', methods=['GET'])
-@jwt_required()
-def get_product(product_id):
+def get_product(product_id): # Product Info/Detail Page
     product = Product.query.get(product_id)
     if not product:
         abort(404, 'Product not found.')
@@ -76,8 +81,8 @@ def get_product(product_id):
 @product_bp.route('/products/<product_id>', methods=['PUT'])
 @jwt_required()
 @role_required('seller')
-def update_product(product_id):
-    data = request.form
+def update_product(product_id): # Seller Profile Store Page
+    data = request.json
     product = Product.query.get(product_id)
     if not product:
         abort(404, 'Product not found.')
@@ -95,7 +100,7 @@ def update_product(product_id):
 @product_bp.route('/products/<product_id>', methods=['DELETE'])
 @jwt_required()
 @role_required('seller')
-def delete_product(product_id):
+def delete_product(product_id): # Seller Profile Store Page
     product = Product.query.get(product_id)
     if not product:
         abort(404, 'Product not found.')
@@ -111,3 +116,29 @@ def delete_product(product_id):
     except IntegrityError:
         db.session.rollback()
         abort(500, 'Error deleting product. Please try again later.')
+
+@product_bp.route('/products/filter', methods=['GET'])
+def filter_products():
+    store_id = request.args.get('store_id')
+    product_type = request.args.get('product_type')
+
+    store = Store.query.get(store_id)
+    if not store:
+        return jsonify({'message': 'Store not found.'}), 404
+
+    location = store.location
+
+    query = Product.query
+
+    if location:
+        query = query.join(Store).filter(Store.location.ilike(f'%{location}%'))
+    
+    if product_type:
+        query = query.filter(Product.product_type == product_type)
+
+    products = query.filter(Product.store_id == store_id).all()
+
+    if not products:
+        return jsonify({'message': 'No products found for the given criteria.'}), 404
+
+    return jsonify([product.to_dict() for product in products]), 200

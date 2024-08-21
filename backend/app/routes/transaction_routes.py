@@ -12,7 +12,7 @@ def create_transaction():
     current_user = get_jwt_identity()
     
     try:
-        payment_method = request.form['payment_method']
+        payment_method = request.json['payment_method']
         
         # Check if the payment method is provided
         if not payment_method:

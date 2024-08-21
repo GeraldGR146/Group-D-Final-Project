@@ -80,7 +80,6 @@ def get_review(review_id):
         return jsonify({'message': 'Error: ' + str(e)}), 500
 
 @review_bp.route('/products/<string:product_id>/reviews', methods=['GET'])
-@jwt_required()
 def list_reviews(product_id):
     try:
         sort_by = request.args.get('sort_by', 'created_at')  # Default sorting by creation date

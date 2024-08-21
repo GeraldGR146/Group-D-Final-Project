@@ -1,8 +1,16 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, unset_jwt_cookies
 from app.models import User, db, bcrypt
+import re
 
 user_bp = Blueprint('user_routes', __name__)
+
+def is_valid_email(email):
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(email_regex, email)
+
+def is_strong_password(password):
+    return len(password) >= 8 and any(c.isalpha() for c in password) and any(c.isdigit() for c in password)
 
 @user_bp.route('/register', methods=['POST'])
 def register():
@@ -13,6 +21,15 @@ def register():
     
     if not all([username, email, password, role]):
         return jsonify({'message': 'Missing fields'}), 400
+
+    if not is_valid_email(email):
+        return jsonify({'message': 'Invalid email format'}), 400
+
+    if not is_strong_password(password):
+        return jsonify({'message': 'Password must be at least 8 characters long, containing both letters and numbers'}), 400
+
+    if User.query.filter_by(username=username).first():
+        return jsonify({'message': 'Username already taken'}), 400
     
     if User.query.filter_by(email=email).first():
         return jsonify({'message': 'Email already registered'}), 400
@@ -86,12 +103,20 @@ def update_user():
     password = request.form.get('password')
     
     if username:
+        if User.query.filter_by(username=username).first():
+            return jsonify({'message': 'Username already taken'}), 400
         user.username = username
+
     if email:
+        if not is_valid_email(email):
+            return jsonify({'message': 'Invalid email format'}), 400
         if User.query.filter_by(email=email).first():
             return jsonify({'message': 'Email already registered'}), 400
         user.email = email
+
     if password:
+        if not is_strong_password(password):
+            return jsonify({'message': 'Password must be at least 8 characters long, containing both letters and numbers'}), 400
         user.set_password(password)
     
     db.session.commit()

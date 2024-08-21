@@ -8,8 +8,8 @@ referral_routes = Blueprint('referral_routes', __name__)
 @jwt_required()
 def create_referral():
     current_user = get_jwt_identity()
-    referred_id = request.form.get('referred_id')
-    code = request.form.get('code')
+    referred_id = request.json.get('referred_id')
+    code = request.json.get('code')
 
     if not all([referred_id, code]):
         return jsonify({'message': 'Missing fields'}), 400

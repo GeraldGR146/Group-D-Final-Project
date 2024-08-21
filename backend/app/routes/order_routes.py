@@ -26,7 +26,7 @@ def get_orders():
 def create_order():
     session = get_session()
     consumer_id = get_jwt_identity()['user_id']
-    delivery_method = request.form.get('delivery_method', 'Delivery')  # Default to 'Delivery' if not provided
+    delivery_method = request.json.get('delivery_method', 'Delivery')  # Default to 'Delivery' if not provided
 
     if delivery_method not in ['Pickup', 'Delivery']:
         return jsonify({'error': 'Invalid delivery method'}), 400
@@ -138,7 +138,7 @@ def update_order(order_id):
             return jsonify({'error': 'You do not have permission to update this order'}), 403
         
         # Update delivery method
-        delivery_method = request.form.get('delivery_method')
+        delivery_method = request.json.get('delivery_method')
         if delivery_method:
             if delivery_method not in ['Pickup', 'Delivery']:
                 return jsonify({'error': 'Invalid delivery method'}), 400
@@ -150,7 +150,7 @@ def update_order(order_id):
             return jsonify({'error': 'You do not have permission to update this order'}), 403
 
         # Update order status
-        status = request.form.get('status')
+        status = request.json.get('status')
         if status:
             if status not in ['Processing', 'Shipped', 'Delivered', 'Completed', 'Cancelled']:
                 return jsonify({'error': 'Invalid status'}), 400

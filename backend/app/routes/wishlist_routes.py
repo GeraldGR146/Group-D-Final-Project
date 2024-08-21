@@ -8,7 +8,7 @@ wishlist_routes = Blueprint('wishlist_routes', __name__)
 @jwt_required()
 def add_to_wishlist():
     current_user = get_jwt_identity()
-    product_id = request.form.get('product_id')
+    product_id = request.json.get('product_id')
 
     if not product_id:
         return jsonify({'message': 'Missing product_id'}), 400

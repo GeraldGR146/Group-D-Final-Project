@@ -9,12 +9,12 @@ promotion_bp = Blueprint('promotion_routes', __name__)
 @promotion_bp.route('/stores/<string:store_id>/promotions', methods=['POST'])
 @jwt_required()
 @role_required('seller')  # Ensure only sellers can create promotions
-def create_promotion(store_id):
+def create_promotion(store_id): #seller Profile Store Page
     current_user = get_jwt_identity()
-    code = request.form.get('code')
-    discount_percentage = request.form.get('discount_percentage')
-    start_date = request.form.get('start_date')
-    end_date = request.form.get('end_date')
+    code = request.json.get('code')
+    discount_percentage = request.json.get('discount_percentage')
+    start_date = request.json.get('start_date')
+    end_date = request.json.get('end_date')
 
     if not all([code, discount_percentage, start_date, end_date]):
         return jsonify({'message': 'Missing fields'}), 400
@@ -67,12 +67,12 @@ def get_promotion(promotion_id):
 @promotion_bp.route('/promotions/<string:promotion_id>', methods=['PUT'])
 @jwt_required()
 @role_required('seller')
-def update_promotion(promotion_id):
+def update_promotion(promotion_id): #seller Profile Store Page
     current_user = get_jwt_identity()
-    code = request.form.get('code')
-    discount_percentage = request.form.get('discount_percentage')
-    start_date = request.form.get('start_date')
-    end_date = request.form.get('end_date')
+    code = request.json.get('code')
+    discount_percentage = request.json.get('discount_percentage')
+    start_date = request.json.get('start_date')
+    end_date = request.json.get('end_date')
 
     promotion = Promotion.query.get(promotion_id)
     if not promotion:
@@ -101,7 +101,7 @@ def update_promotion(promotion_id):
 @promotion_bp.route('/promotions/<string:promotion_id>', methods=['DELETE'])
 @jwt_required()
 @role_required('seller')
-def delete_promotion(promotion_id):
+def delete_promotion(promotion_id): #seller Profile Store Page
     current_user = get_jwt_identity()
 
     promotion = Promotion.query.get(promotion_id)
@@ -136,11 +136,11 @@ def get_store_promotions(store_id):
 
 @promotion_bp.route('/orders/<int:order_id>/apply_promotion', methods=['POST'])
 @jwt_required()
-def apply_promotion(order_id):
+def apply_promotion(order_id): #shopping cart page
     current_user = get_jwt_identity()
 
     # Get the promotion code from the form data
-    promotion_code = request.form.get('code')
+    promotion_code = request.json.get('code')
     if not promotion_code:
         return jsonify({'message': 'Promotion code is required'}), 400
 

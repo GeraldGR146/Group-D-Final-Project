@@ -8,7 +8,7 @@ cart_bp = Blueprint('cart_bp', __name__)
 def get_user_cart(session, user_id):
     cart = session.query(Cart).filter_by(consumer_id=user_id).first()
     if not cart:
-        # create a new cart for the user if none exists
+        # Create a new cart for the user if none exists
         cart = Cart(cart_id=Cart.create_unique_cart_id(session), consumer_id=user_id)
         session.add(cart)
         session.commit()
@@ -24,8 +24,14 @@ def add_item_to_cart():
     
     cart = get_user_cart(session, user_id)
     
-    product_id = request.form.get('product_id')
-    quantity = int(request.form.get('quantity'))
+    data = request.json
+    product_id = data.get('product_id')
+    quantity = data.get('quantity')
+    
+    if not product_id or quantity is None:
+        return jsonify({'error': 'Product ID and quantity are required.'}), 400
+    
+    quantity = int(quantity)
     
     # Check if the product already exists in the cart
     existing_item = session.query(CartItem).filter_by(cart_id=cart.cart_id, product_id=product_id).first()
@@ -59,8 +65,14 @@ def update_cart_item():
     
     cart = get_user_cart(session, user_id)
     
-    cart_item_id = request.form.get('cart_item_id')
-    quantity = int(request.form.get('quantity'))
+    data = request.json
+    cart_item_id = data.get('cart_item_id')
+    quantity = data.get('quantity')
+    
+    if not quantity:
+        return jsonify({"message": "Quantity is required"}), 400
+    
+    quantity = int(quantity)
     
     # If cart_item_id is not provided, get the first item in the cart
     if not cart_item_id:
@@ -89,7 +101,8 @@ def delete_cart_item():
     
     cart = get_user_cart(session, user_id)
     
-    cart_item_id = request.form.get('cart_item_id')
+    data = request.json
+    cart_item_id = data.get('cart_item_id')
     
     # If cart_item_id is not provided, get the first item in the cart
     if not cart_item_id:
