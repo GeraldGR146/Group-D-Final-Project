@@ -1,54 +1,56 @@
 import React from 'react';
+import { useRouter } from 'next/router'; 
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { createProduct } from '../../../components/Services/UserService';
 
 const ProductForm = () => {
+  const router = useRouter(); 
+
   const initialValues = {
     name: '',
     description: '',
     price: '',
-    category: 'standard',
+    product_type: 'Standard',
     quantity: 0,
-    image_url: '',  // Image URL as a text field
+    image_url: '',  
   };
 
   const validationSchema = Yup.object({
     name: Yup.string().required('Product name is required'),
     description: Yup.string(),
     price: Yup.number().required('Price is required').positive('Price must be positive'),
-    category: Yup.string().required('Category is required'),
+    product_type: Yup.string().oneOf(['Standard', 'Premium'], 'Product type must be either "Standard" or "Premium"').required('Category is required'),
     quantity: Yup.number().required('Quantity is required').min(0, 'Quantity cannot be negative'),
-    image_url: Yup.string().url(),  // Validate as URL
+    image_url: Yup.string().url('Invalid URL'),  
   });
 
   const handleSubmit = async (values, { setSubmitting, setErrors }) => {
-    const formData = new FormData();
+    
+    const payload = {
+      name: values.name,
+      description: values.description,
+      price: values.price,
+      product_type: values.product_type, 
+      quantity: values.quantity,
+      image_url: values.image_url,
+    };
 
-    // Append all fields to formData
-    formData.append('name', values.name);
-    formData.append('description', values.description);
-    formData.append('price', values.price);
-    formData.append('product_type', values.category); // Ensure this matches the backend's expected field
-    formData.append('quantity', values.quantity);
-    formData.append('image_url', values.image_url);  // Append the image URL
-
-    console.log('Form Values:', values);
-    console.log('FormData entries:');
-    for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-    }
+    console.log('Payload being sent:', payload);
 
     try {
-        const response = await createProduct(formData);
-        console.log('Product created:', response);
-        // Handle success, e.g., redirect to product list page
+      const response = await createProduct(payload);
+      console.log('Product created successfully:', response);
+      
+      
+      router.push('/me');
     } catch (error) {
-        setErrors({ submit: error.message });
+      console.error('Error during product creation:', error.response ? error.response.data : error.message);
+      setErrors({ submit: error.response ? error.response.data.errors : error.message });
     } finally {
-        setSubmitting(false);
+      setSubmitting(false);
     }
-};
+  };
 
   return (
     <Formik
@@ -92,13 +94,13 @@ const ProductForm = () => {
             <label className="block text-gray-700 text-sm font-bold mb-2">Category:</label>
             <Field
               as="select"
-              name="category"
+              name="product_type"
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             >
-              <option value="standard">Standard</option>
-              <option value="premium">Premium</option>
+              <option value="Standard">Standard</option>
+              <option value="Premium">Premium</option>
             </Field>
-            <ErrorMessage name="category" component="div" className="text-red-500 text-xs mt-2" />
+            <ErrorMessage name="product_type" component="div" className="text-red-500 text-xs mt-2" />
           </div>
 
           <div className="mb-4">

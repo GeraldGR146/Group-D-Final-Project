@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { fetchUserProfile, fetchStores, fetchProductsByStore, handleSaveProduct, deleteProduct } from '../../components/Services/UserService';
+import { fetchUserProfile, fetchStores, fetchProductsByStore, deleteProduct } from '../../components/Services/UserService';
 import SellerCard from '../../components/Card/SellerCard';
-import ProductForm from './new_product';
 import Transaction from './transactions_list';
 import ProfilePage from './profile';
 import Dashboard from './Dashboard';
@@ -57,6 +56,13 @@ const Profile = () => {
         }
     };
 
+    useEffect(() => {
+        if (selectedSection.startsWith('store_')) {
+            const storeIndex = parseInt(selectedSection.split('_')[1]);
+            fetchProductsForStore(storeIndex); // Fetch products whenever a store is selected
+        }
+    }, [selectedSection]);
+
     if (loading) {
         return <div className="text-center mt-20">Loading...</div>;
     }
@@ -80,17 +86,38 @@ const Profile = () => {
                 fetchStores={loadStores}
             />
             <div className="w-3/4">
-                <MainBody selectedSection={selectedSection} stores={stores} fetchProductsForStore={fetchProductsForStore} />
+                <MainBody selectedSection={selectedSection} stores={stores} />
             </div>
         </div>
     );
 };
 
-const MainBody = ({ selectedSection, stores, onDeleteProduct, onEditProduct }) => {
+const MainBody = ({ selectedSection, stores, onDeleteProduct }) => {
     const router = useRouter();
 
     const handleAddProduct = () => {
-        router.push('/me/new_product'); // Navigate to the product form page
+        router.push('/me/new_product'); 
+    };
+
+    const handleEditProduct = (product_id) => {
+        sessionStorage.setItem('product_id', product_id); 
+        router.push('/me/update_product'); 
+    };
+
+
+    const handleDeleteProduct = async (product_id) => {
+        try {
+            sessionStorage.setItem('product_id', product_id);
+            await deleteProduct(product_id);
+            console.log(`Product with ID ${product_id} deleted successfully.`);
+            alert('Product deleted successfully!');
+    
+            // Refresh the page
+            router.reload();  // This will reload the current page
+            sessionStorage.removeItem('product_id');
+        } catch (error) {
+            console.error('Failed to delete product:', error);
+        }
     };
 
     if (selectedSection.startsWith('store_')) {
@@ -122,8 +149,8 @@ const MainBody = ({ selectedSection, stores, onDeleteProduct, onEditProduct }) =
                                 quantity={product.quantity}
                                 product_type={product.product_type}
                                 image_url={product.image_url}
-                                onDelete={() => onDeleteProduct(product.product_id)}
-                                onEdit={() => onEditProduct(product.product_id)}
+                                onDelete={() => handleDeleteProduct(product.product_id)}
+                                onEdit={() => handleEditProduct(product.product_id)} 
                             />
                         ))
                     ) : (

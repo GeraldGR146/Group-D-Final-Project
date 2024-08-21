@@ -1,108 +1,86 @@
-import React from "react";
-import { useFormik } from "formik";
-import * as Yup from "yup";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useRouter } from 'next/router';
 
 const ProfilePage = () => {
-    const formik = useFormik({
-        initialValues: {
-            username: '',
-            email: '',
-            password: ''
-        },
-        validationSchema: Yup.object({
-            username: Yup.string().required('Username is required'),
-            email: Yup.string().email('Invalid email address').required('Email is required'),
-            password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
-        }),
-        onSubmit: async (values) => {
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [userData, setUserData] = useState({});
+    const router = useRouter();
+
+    useEffect(() => {
+        const fetchUserData = async () => {
             try {
-                const formData = new FormData();
-                formData.append('username', values.username);
-                formData.append('email', values.email);
-                formData.append('password', values.password);
-
-                const response = await axios.put('http://127.0.0.1:5000/me/update', formData, {
+                const response = await axios.get('http://127.0.0.1:5000/me', {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-                    }
+                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+                    },
                 });
-
-                alert('Profile updated successfully');
+                
+                // Directly set response data to variables
+                setUserData(response.data);
             } catch (error) {
-                if (error.response && error.response.data) {
-                    console.error('Backend Error:', error.response.data);
-                    alert(error.response.data.message || 'Failed to update profile');
-                } else {
-                    console.error('Error:', error.message);
-                    alert('An error occurred. Please try again.');
-                }
+                setError(error.response ? error.response.data.message : 'An error occurred');
+            } finally {
+                setLoading(false);
             }
-        },
-    });
+        };
+
+        fetchUserData();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="bg-gray-100 flex justify-center items-center min-h-screen">
+                <p className="text-lg font-medium text-gray-700">Loading...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="bg-gray-100 flex justify-center items-center min-h-screen">
+                <p className="text-lg font-medium text-red-500">{error}</p>
+            </div>
+        );
+    }
+
+    const handleUpdateProfile = () => {
+        router.push('/me/update_profile');
+    };
 
     return (
         <div className="bg-gray-100 flex justify-center items-center min-h-screen">
             <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-3xl">
-                <h2 className="text-2xl font-bold text-gray-800">Update Profile</h2>
+                <h2 className="text-2xl font-bold text-gray-800">User Profile</h2>
 
-                <form className="mt-6" onSubmit={formik.handleSubmit}>
-                    <div className="grid grid-cols-1 gap-6">
-                        <div>
-                            <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username*</label>
-                            <input
-                                type="text"
-                                id="username"
-                                name="username"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                placeholder="Username"
-                                value={formik.values.username}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                            />
-                            {formik.touched.username && formik.errors.username ? (
-                                <div className="text-red-500 text-sm">{formik.errors.username}</div>
-                            ) : null}
-                        </div>
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email*</label>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                placeholder="Email"
-                                value={formik.values.email}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                            />
-                            {formik.touched.email && formik.errors.email ? (
-                                <div className="text-red-500 text-sm">{formik.errors.email}</div>
-                            ) : null}
-                        </div>
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password*</label>
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                placeholder="Password"
-                                value={formik.values.password}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                            />
-                            {formik.touched.password && formik.errors.password ? (
-                                <div className="text-red-500 text-sm">{formik.errors.password}</div>
-                            ) : null}
-                        </div>
+                <div className="mt-6 space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Username</label>
+                        <p className="mt-1 text-gray-900">{userData.username || 'No username available'}</p>
                     </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <p className="mt-1 text-gray-900">{userData.email || 'No email available'}</p>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Role</label>
+                        <p className="mt-1 text-gray-900">{userData.role || 'No role available'}</p>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Joined At</label>
+                        <p className="mt-1 text-gray-900">{userData.created_at ? new Date(userData.created_at).toLocaleDateString() : 'No date available'}</p>
+                    </div>
+                </div>
 
-                    <div className="mt-6 flex justify-end space-x-4">
-                        <button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg">Save</button>
-                        <button type="button" className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg">Cancel</button>
-                    </div>
-                </form>
+                <div className="mt-6">
+                    <button
+                        onClick={handleUpdateProfile}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg"
+                    >
+                        Update Profile
+                    </button>
+                </div>
             </div>
         </div>
     );

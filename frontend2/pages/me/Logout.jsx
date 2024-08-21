@@ -12,6 +12,7 @@ const HandleLogout = async () => {
         sessionStorage.removeItem('role');
         sessionStorage.removeItem('username');
         sessionStorage.removeItem('store_id');
+        sessionStorage.removeItem('product_id');
 
         console.log('Logout successful');
 
