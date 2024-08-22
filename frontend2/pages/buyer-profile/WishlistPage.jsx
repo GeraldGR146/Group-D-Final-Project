@@ -1,37 +1,57 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import WishlistCard from '../../components/Card/WishlistCard'
 
 const WishlistPage = () => {
-    const wishlistItems = [
-        {
-            imgSrc: 'https://placehold.co/60x60',
-            title: 'Blue Flower Print Crop Top',
-            color: 'Yellow',
-            quantity: 1,
-            price: 30
-        },
-        {
-            imgSrc: 'https://placehold.co/60x60',
-            title: 'Yellow Flower Print Dress',
-            color: 'Yellow',
-            quantity: 1,
-            price: 78.00
-        },
-        {
-            imgSrc: 'https://placehold.co/60x60',
-            title: 'White Hoodie Long Sleeve',
-            color: 'White',
-            quantity: 1,
-            price: 134.00
-        },
-        {
-            imgSrc: 'https://placehold.co/60x60',
-            title: 'Brown Men’s Long Sleeve T-shirt',
-            color: 'Brown',
-            quantity: 1,
-            price: 93.00
-        }
-    ];
+    const [wishlistItems, setWishlistItems] = useState([]);
+
+    useEffect(() => {
+        const fetchWishlist = async () => {
+            try {
+                const response = await fetch('/wishlist', {
+                    headers: {
+                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                    }
+                });
+                const data = await response.json();
+                setWishlistItems(data);
+            } catch (error) {
+                console.error('Error fetching wishlist:', error);
+            }
+        };
+
+        fetchWishlist();
+    }, []);
+    
+    // const wishlistItems = [
+    //     {
+    //         imgSrc: 'https://placehold.co/60x60',
+    //         title: 'Blue Flower Print Crop Top',
+    //         color: 'Yellow',
+    //         quantity: 1,
+    //         price: 30
+    //     },
+    //     {
+    //         imgSrc: 'https://placehold.co/60x60',
+    //         title: 'Yellow Flower Print Dress',
+    //         color: 'Yellow',
+    //         quantity: 1,
+    //         price: 78.00
+    //     },
+    //     {
+    //         imgSrc: 'https://placehold.co/60x60',
+    //         title: 'White Hoodie Long Sleeve',
+    //         color: 'White',
+    //         quantity: 1,
+    //         price: 134.00
+    //     },
+    //     {
+    //         imgSrc: 'https://placehold.co/60x60',
+    //         title: 'Brown Men’s Long Sleeve T-shirt',
+    //         color: 'Brown',
+    //         quantity: 1,
+    //         price: 93.00
+    //     }
+    // ];
 
     return (
         <div className="bg-gray-100 flex justify-center items-center min-h-screen">

@@ -1,13 +1,13 @@
 // models/Product.js
 export default class Product {
-    constructor(id, name, description, price, quantity, productType, imageUrl) {
+    constructor(id, name, description, price, quantity, product_type, imageUrl) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
         this.quantity = quantity;
-        this.productType = productType;
-        this.imageUrl = imageUrl;
+        this.product_type = product_type;
+        this.image_url = imageUrl;
     }
 
     static fromJson(json) {

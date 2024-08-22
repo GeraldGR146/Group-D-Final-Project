@@ -1,12 +1,10 @@
 // services/ReviewService.js
 
-class ReviewService {
-    constructor(baseURL) {
-        this.baseURL = baseURL;
-    }
+import Review from '../models/Review';
 
-    async createReview(productId, rating, comment, token) {
-        const response = await fetch(`${this.baseURL}/products/${productId}/reviews`, {
+class ReviewService {
+    static async createReview(product_Id, rating, comment, token) {
+        const response = await fetch(`http://127.0.0.1:5000/products/${product_Id}/reviews`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -14,21 +12,23 @@ class ReviewService {
             },
             body: JSON.stringify({ rating, comment })
         });
-        return response.json();
+        const data = await response.json();
+        return Review.fromJson(data);
     }
 
-    async getReviews(productId, token) {
-        const response = await fetch(`${this.baseURL}/products/${productId}/reviews`, {
+    static async getReviews(product_Id, token) {
+        const response = await fetch(`http://127.0.0.1:5000/products/${product_Id}/reviews`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
-        return response.json();
+        const data = await response.json();
+        return data.map(Review.fromJson);
     }
 
-    async updateReview(productId, reviewId, rating, comment, token) {
-        const response = await fetch(`${this.baseURL}/products/${productId}/reviews/${reviewId}`, {
+    static async updateReview(product_Id, review_Id, rating, comment, token) {
+        const response = await fetch(`http://127.0.0.1:5000/products/${product_Id}/reviews/${review_Id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -36,17 +36,19 @@ class ReviewService {
             },
             body: JSON.stringify({ rating, comment })
         });
-        return response.json();
+        const data = await response.json();
+        return Review.fromJson(data);
     }
 
-    async deleteReview(productId, reviewId, token) {
-        const response = await fetch(`${this.baseURL}/products/${productId}/reviews/${reviewId}`, {
+    static async deleteReview(product_Id, review_Id, token) {
+        const response = await fetch(`http://127.0.0.1:5000/products/${product_Id}/reviews/${review_Id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
-        return response.json();
+        const data = await response.json();
+        return data; // Assuming the response is a success message or similar.
     }
 }
 
