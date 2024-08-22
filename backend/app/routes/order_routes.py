@@ -165,3 +165,46 @@ def update_order(order_id):
     except SQLAlchemyError as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
+
+@order_bp.route('/orders/<string:order_id>', methods=['GET'])
+@jwt_required()
+def get_order_by_id(order_id):
+    user_id = get_jwt_identity()['user_id']
+    user_role = get_jwt_identity()['role']
+
+    # Fetch the order by order_id
+    order = Order.query.filter_by(order_id=order_id).first()
+    
+    if order is None:
+        return jsonify({'error': 'Order not found'}), 404
+    
+    # Ensure that the user has the right to access this order
+    if user_role == 'consumer' and order.consumer_id != user_id:
+        return jsonify({'error': 'You do not have permission to view this order'}), 403
+    
+    if user_role == 'seller' and order.seller_id != user_id:
+        return jsonify({'error': 'You do not have permission to view this order'}), 403
+    
+    return jsonify(order.to_dict()), 200
+
+@order_bp.route('/orders/status/<string:status>', methods=['GET'])
+@jwt_required()
+def get_orders_by_status(status):
+    user_id = get_jwt_identity()['user_id']
+    user_role = get_jwt_identity()['role']
+
+    # Validate the status input
+    valid_statuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Completed', 'Cancelled']
+    if status not in valid_statuses:
+        return jsonify({'error': 'Invalid status'}), 400
+
+    # Fetch orders based on user role
+    if user_role == 'consumer':
+        orders = Order.query.filter_by(consumer_id=user_id, status=status).all()
+    elif user_role == 'seller':
+        orders = Order.query.filter_by(seller_id=user_id, status=status).all()
+    else:
+        return jsonify({'error': 'Invalid user role'}), 403
+
+    # Return the list of orders
+    return jsonify([order.to_dict() for order in orders]), 200

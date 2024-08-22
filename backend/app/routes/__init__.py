@@ -9,6 +9,7 @@ from app.routes.promotion_routes import promotion_bp
 from app.routes.review_routes import review_bp
 from app.routes.transaction_routes import transaction_bp
 from app.routes.cart_routes import cart_bp
+from app.routes.wishlist_routes import wishlist_routes
 
 def register_routes(app):
     # Register blueprints
@@ -20,3 +21,4 @@ def register_routes(app):
     app.register_blueprint(review_bp)
     app.register_blueprint(transaction_bp)
     app.register_blueprint(cart_bp)
+    app.register_blueprint(wishlist_routes)

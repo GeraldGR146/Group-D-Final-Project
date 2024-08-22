@@ -13,7 +13,8 @@ def add_to_wishlist():
     if not product_id:
         return jsonify({'message': 'Missing product_id'}), 400
 
-    if Product.query.get(product_id) is None:
+    product = Product.query.get(product_id)
+    if product is None:
         return jsonify({'message': 'Product not found'}), 404
 
     existing_wishlist_item = Wishlist.query.filter_by(
@@ -25,14 +26,30 @@ def add_to_wishlist():
         return jsonify({'message': 'Product already in wishlist'}), 400
 
     new_wishlist_item = Wishlist(
+        wishlist_id=Wishlist.generate_wishlist_id(),  # Correctly generate the wishlist_id
         consumer_id=current_user['user_id'],
-        product_id=int(product_id)
+        product_id=product_id
     )
 
     try:
         db.session.add(new_wishlist_item)
         db.session.commit()
-        return jsonify({'message': 'Product added to wishlist'}), 201
+        
+        # Fetch the added product details
+        product_details = {
+            'product_id': product.product_id,
+            'product_name': product.name,
+            'product_description': product.description,
+            'product_price': product.price,
+            'product_quantity': product.quantity,
+            'product_image_url': product.image_url
+        }
+
+        return jsonify({
+            'message': 'Product added to wishlist',
+            'product': product_details
+        }), 201
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': str(e)}), 500
@@ -42,21 +59,31 @@ def add_to_wishlist():
 def get_wishlist():
     current_user = get_jwt_identity()
 
-    wishlist_items = Wishlist.query.filter_by(consumer_id=current_user['user_id']).all()
+    try:
+        wishlist_items = Wishlist.query.filter_by(consumer_id=current_user['user_id']).all()
 
-    result = []
-    for item in wishlist_items:
-        product = Product.query.get(item.product_id)
-        result.append({
-            'wishlist_id': item.wishlist_id,
-            'product_id': item.product_id,
-            'product_name': product.name if product else 'Unknown Product',
-            'created_at': item.created_at
-        })
+        if not wishlist_items:
+            return jsonify({'message': 'Wishlist is empty'}), 200
 
-    return jsonify(result), 200
+        result = []
+        for item in wishlist_items:
+            product = Product.query.get(item.product_id)
+            if product:
+                result.append({
+                    'wishlist_id': item.wishlist_id,
+                    'product_id': item.product_id,
+                    'product_name': product.name,
+                    'created_at': item.created_at
+                })
+            else:
+                return jsonify({'message': f'Product with ID {item.product_id} not found'}), 404
 
-@wishlist_routes.route('/wishlist/<int:wishlist_id>', methods=['DELETE'])
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({'message': str(e)}), 500
+    
+@wishlist_routes.route('/wishlist/<string:wishlist_id>', methods=['DELETE'])
 @jwt_required()
 def remove_from_wishlist(wishlist_id):
     current_user = get_jwt_identity()
@@ -75,3 +102,4 @@ def remove_from_wishlist(wishlist_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': str(e)}), 500
+
