@@ -1,7 +1,7 @@
 //product detail
 
 import React from 'react';
-import productServices from './productServices';
+// import productServices from './productServices';
 // import Rating from '../Review/Rating';
 // import CommentForm from '../Review/CommentForm';
 import ReviewList from '../../components/reviewList'

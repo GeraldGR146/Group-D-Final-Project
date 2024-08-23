@@ -176,8 +176,8 @@ const MainBody = ({ selectedSection, stores, onDeleteProduct }) => {
     switch (selectedSection) {
         case 'my_info':
             return <ProfilePage />;
-        case 'dashboard':
-            return <Dashboard />;
+        // case 'dashboard':
+        //     return <Dashboard />;
         case 'transactions':
             return <Transaction transactions={stores.transactions} />;
         case 'wishlist':
