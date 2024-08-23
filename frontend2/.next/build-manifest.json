@@ -12,6 +12,14 @@
   ],
   "rootMainFiles": [],
   "pages": {
+<<<<<<< HEAD
+=======
+    "/": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/index.js"
+    ],
+>>>>>>> parent of 54e2578 (add .eslintrc.json)
     "/_app": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
@@ -26,11 +34,14 @@
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/me.js"
+<<<<<<< HEAD
     ],
     "/me/new_product": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/me/new_product.js"
+=======
+>>>>>>> parent of 54e2578 (add .eslintrc.json)
     ]
   },
   "ampFirstPages": []

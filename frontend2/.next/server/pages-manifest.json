@@ -1,20 +1,9 @@
 {
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
-  "/MainPage/BestSeller": "pages/MainPage/BestSeller.js",
-  "/MainPage/Carousel": "pages/MainPage/Carousel.js",
-  "/MainPage/Category": "pages/MainPage/Category.js",
-  "/MainPage/HowToOrder": "pages/MainPage/HowToOrder.js",
-  "/buyer-profile/Logout": "pages/buyer-profile/Logout.js",
-  "/buyer-profile/ProfilePage": "pages/buyer-profile/ProfilePage.js",
-  "/buyer-profile": "pages/buyer-profile.js",
-  "/checkout": "pages/checkout.js",
-  "/": "pages/index.js",
-  "/login": "pages/login.js",
-  "/me/Logout": "pages/me/Logout.js",
-  "/me/create_store_form": "pages/me/create_store_form.js",
-  "/me/dashboard": "pages/me/dashboard.js",
+  "/_document": "pages/_document.js",
   "/me": "pages/me.js",
+<<<<<<< HEAD
 <<<<<<< HEAD
   "/me/my_orders": "pages/me/my_orders.js",
   "/me/new_product": "pages/me/new_product.js",
@@ -38,4 +27,8 @@
   "/login": "pages/login.js",
   "/me/new_product": "pages/me/new_product.js"
 >>>>>>> parent of a32a809 (compile frontend Ready to Deploy)
+=======
+  "/me/promotion": "pages/me/promotion.js",
+  "/": "pages/index.js"
+>>>>>>> parent of 54e2578 (add .eslintrc.json)
 }

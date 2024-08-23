@@ -131,7 +131,11 @@
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	!function() {
+<<<<<<< HEAD
 /******/ 		__webpack_require__.h = function() { return "dd76bb29321c35af"; }
+=======
+/******/ 		__webpack_require__.h = function() { return "b4a6811a549a9cbe"; }
+>>>>>>> parent of 54e2578 (add .eslintrc.json)
 /******/ 	}();
 /******/ 	
 /******/ 	/* webpack/runtime/global */
