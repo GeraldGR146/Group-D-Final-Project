@@ -16,14 +16,14 @@ class ProductInfo extends React.Component {
     };
   }
 
-  async componentDidMount() {
-    try {
-      const product = await ProductService.getProductById(this.props.productId);
-      this.setState({ product });
-    } catch (error) {
-      console.error('Error fetching product:', error);
-    }
-  }
+  // async componentDidMount() {
+  //   try {
+  //     const product = await ProductService.getProductById(this.props.productId);
+  //     this.setState({ product });
+  //   } catch (error) {
+  //     console.error('Error fetching product:', error);
+  //   }
+  // }
 
   handleRatingChange = (rating) => {
     this.setState({ rating });
