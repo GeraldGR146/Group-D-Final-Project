@@ -1,0 +1,41 @@
+{
+  "/_app": "pages/_app.js",
+  "/_error": "pages/_error.js",
+  "/MainPage/BestSeller": "pages/MainPage/BestSeller.js",
+  "/MainPage/Carousel": "pages/MainPage/Carousel.js",
+  "/MainPage/Category": "pages/MainPage/Category.js",
+  "/MainPage/HowToOrder": "pages/MainPage/HowToOrder.js",
+  "/buyer-profile/Logout": "pages/buyer-profile/Logout.js",
+  "/buyer-profile/ProfilePage": "pages/buyer-profile/ProfilePage.js",
+  "/buyer-profile": "pages/buyer-profile.js",
+  "/checkout": "pages/checkout.js",
+  "/": "pages/index.js",
+  "/login": "pages/login.js",
+  "/me/Logout": "pages/me/Logout.js",
+  "/me/create_store_form": "pages/me/create_store_form.js",
+  "/me/dashboard": "pages/me/dashboard.js",
+  "/me": "pages/me.js",
+<<<<<<< HEAD
+  "/me/my_orders": "pages/me/my_orders.js",
+  "/me/new_product": "pages/me/new_product.js",
+  "/me/profile": "pages/me/profile.js",
+  "/me/promotion": "pages/me/promotion.js",
+  "/me/sidebarRev": "pages/me/sidebarRev.js",
+  "/me/transactions_list": "pages/me/transactions_list.js",
+  "/me/update_product": "pages/me/update_product.js",
+  "/me/update_profile": "pages/me/update_profile.js",
+  "/me/wishlist": "pages/me/wishlist.js",
+  "/pages_product/Product": "pages/pages_product/Product.js",
+  "/pages_product/ProductCart": "pages/pages_product/ProductCart.js",
+  "/pages_product": "pages/pages_product.js",
+  "/pages_product/productinfo": "pages/pages_product/productinfo.js",
+  "/products/[id]": "pages/products/[id].js",
+  "/products": "pages/products.js",
+  "/register": "pages/register.js",
+  "/shopping_cart": "pages/shopping_cart.js",
+  "/_document": "pages/_document.js"
+=======
+  "/login": "pages/login.js",
+  "/me/new_product": "pages/me/new_product.js"
+>>>>>>> parent of a32a809 (compile frontend Ready to Deploy)
+}
