@@ -26,7 +26,7 @@ class Cart(db.Model):
         return {
             'cart_id': self.cart_id,
             'consumer_id': self.consumer_id,
-            'created_at': self.created_at.isoformat(),  # Convert datetime to ISO format string
+            'created_at': self.created_at.isoformat(),
             'items': [item.to_dict() for item in self.items]
         }
 
@@ -37,7 +37,10 @@ class CartItem(db.Model):
     cart_item_id = Column(String(50), primary_key=True)
     cart_id = Column(String(50), ForeignKey('Carts.cart_id'), nullable=False)
     product_id = Column(String(50), ForeignKey('Products.product_id'), nullable=False)
-    quantity = Column(Integer, nullable=False)
+    product_name = Column(String(100), nullable=False)
+    product_price = Column(DECIMAL(10, 2), nullable=False)
+    product_image_url = Column(String(255))
+    purchase_quantity = Column(Integer, nullable=False) 
     added_at = Column(DateTime, default=datetime.utcnow)
 
     @staticmethod
@@ -56,6 +59,9 @@ class CartItem(db.Model):
             'cart_item_id': self.cart_item_id,
             'cart_id': self.cart_id,
             'product_id': self.product_id,
-            'quantity': self.quantity,
-            'added_at': self.added_at.isoformat()  # Convert datetime to ISO format string
+            'product_name': self.product_name,
+            'product_price': str(self.product_price),
+            'product_image_url': self.product_image_url,
+            'purchase_quantity': self.purchase_quantity,
+            'added_at': self.added_at.isoformat()
         }

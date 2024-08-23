@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models import Cart, CartItem
+from app.models import Cart, CartItem, Product
 from mysql_connector import get_session
 
 cart_bp = Blueprint('cart_bp', __name__)
@@ -8,13 +8,11 @@ cart_bp = Blueprint('cart_bp', __name__)
 def get_user_cart(session, user_id):
     cart = session.query(Cart).filter_by(consumer_id=user_id).first()
     if not cart:
-        # Create a new cart for the user if none exists
         cart = Cart(cart_id=Cart.create_unique_cart_id(session), consumer_id=user_id)
         session.add(cart)
         session.commit()
     return cart
 
-# Add Item to Cart
 @cart_bp.route('/cart/item', methods=['POST'])
 @jwt_required()
 def add_item_to_cart():
@@ -38,17 +36,25 @@ def add_item_to_cart():
     
     if existing_item:
         # Update quantity if item already exists
-        existing_item.quantity += quantity
+        existing_item.purchase_quantity += quantity
         session.commit()
+        
         return jsonify(existing_item.to_dict()), 200
     
-    # Add new cart item if it doesn't exist
+    # Fetch product details
+    product = session.query(Product).filter_by(product_id=product_id).first()
+    if not product:
+        return jsonify({'error': 'Product not found.'}), 404
+    
     cart_item_id = CartItem.create_unique_cart_item_id(session)
     cart_item = CartItem(
         cart_item_id=cart_item_id,
         cart_id=cart.cart_id,
         product_id=product_id,
-        quantity=quantity
+        product_name=product.name,
+        product_price=product.price,
+        product_image_url=product.image_url,
+        purchase_quantity=quantity
     )
     session.add(cart_item)
     session.commit()
@@ -86,9 +92,18 @@ def update_cart_item():
     if not cart_item:
         return jsonify({"message": "Cart item not found"}), 404
     
-    cart_item.quantity = quantity
+    cart_item.purchase_quantity = quantity
     session.commit()
+
+    # Fetch the updated product details
+    product = session.query(Product).filter_by(product_id=cart_item.product_id).first()
+    if not product:
+        return jsonify({'error': 'Product not found.'}), 404
     
+    cart_item.product_name = product.name
+    cart_item.product_price = product.price
+    cart_item.product_image_url = product.image_url
+
     return jsonify(cart_item.to_dict()), 200
 
 # Delete Cart Item
@@ -115,11 +130,24 @@ def delete_cart_item():
     cart_item = session.query(CartItem).filter_by(cart_item_id=cart_item_id, cart_id=cart.cart_id).first()
     if not cart_item:
         return jsonify({"message": "Cart item not found"}), 404
+
+    # Fetch the product details before deleting
+    product = session.query(Product).filter_by(product_id=cart_item.product_id).first()
+    if not product:
+        return jsonify({'error': 'Product not found.'}), 404
     
     session.delete(cart_item)
     session.commit()
     
-    return jsonify({"message": "Cart item deleted"}), 200
+    return jsonify({
+        "message": "Cart item deleted",
+        "cart_item": cart_item.to_dict(),
+        "product": {
+            "product_name": product.name,
+            "product_price": str(product.price),
+            "product_image_url": product.image_url
+        }
+    }), 200
 
 # Delete All Cart Items
 @cart_bp.route('/cart/items', methods=['DELETE'])
@@ -136,11 +164,21 @@ def delete_all_cart_items():
     if not items:
         return jsonify({"message": "No items in cart to delete"}), 404
     
+    deleted_items = []
     for item in items:
+        product = session.query(Product).filter_by(product_id=item.product_id).first()
+        deleted_items.append({
+            "cart_item": item.to_dict(),
+            "product": {
+                "product_name": product.name if product else "Unknown",
+                "product_price": str(product.price) if product else "Unknown",
+                "product_image_url": product.image_url if product else "Unknown"
+            }
+        })
         session.delete(item)
     session.commit()
     
-    return jsonify({"message": "All cart items deleted"}), 200
+    return jsonify({"message": "All cart items deleted", "deleted_items": deleted_items}), 200
 
 # Get Cart Items
 @cart_bp.route('/cart/item', methods=['GET'])
@@ -157,4 +195,20 @@ def get_cart_items():
     if not items:
         return jsonify({"message": "Cart is empty"}), 200
     
-    return jsonify([item.to_dict() for item in items]), 200
+    result = []
+    for item in items:
+        # Fetch product details
+        product = session.query(Product).filter_by(product_id=item.product_id).first()
+        if not product:
+            return jsonify({'error': 'Product not found.'}), 404
+        
+        result.append({
+            'cart_item': item.to_dict(),
+            'product': {
+                'product_name': product.name,
+                'product_price': str(product.price),
+                'product_image_url': product.image_url
+            }
+        })
+    
+    return jsonify(result), 200

@@ -119,26 +119,25 @@ def delete_product(product_id): # Seller Profile Store Page
 
 @product_bp.route('/products/filter', methods=['GET'])
 def filter_products():
-    store_id = request.args.get('store_id')
-    product_type = request.args.get('product_type')
-
-    store = Store.query.get(store_id)
-    if not store:
-        return jsonify({'message': 'Store not found.'}), 404
-
-    location = store.location
+    category = request.args.get('category')
+    location = request.args.get('location')
+    name = request.args.get('name', '')
 
     query = Product.query
 
-    if location:
-        query = query.join(Store).filter(Store.location.ilike(f'%{location}%'))
-    
-    if product_type:
-        query = query.filter(Product.product_type == product_type)
+    if category and category != 'All':
+        query = query.filter(Product.product_type == category)
 
-    products = query.filter(Product.store_id == store_id).all()
+    if location and location != 'All':
+        query = query.filter(Product.location.ilike(f'%{location}%'))
+
+    if name:
+        query = query.filter(Product.name.ilike(f'%{name}%'))
+
+    products = query.all()
 
     if not products:
         return jsonify({'message': 'No products found for the given criteria.'}), 404
 
     return jsonify([product.to_dict() for product in products]), 200
+

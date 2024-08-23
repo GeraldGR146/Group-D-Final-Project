@@ -101,14 +101,18 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('promotion_id'),
     sa.UniqueConstraint('code')
     )
-    op.create_table('CartItems',
+    op.create_table(
+    'CartItems',
     sa.Column('cart_item_id', sa.String(length=50), nullable=False),
     sa.Column('cart_id', sa.String(length=50), nullable=False),
     sa.Column('product_id', sa.String(length=50), nullable=False),
-    sa.Column('quantity', sa.Integer(), nullable=False),
-    sa.Column('added_at', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['cart_id'], ['Carts.cart_id']),
-    sa.ForeignKeyConstraint(['product_id'], ['Products.product_id']),
+    sa.Column('product_name', sa.String(length=100), nullable=False),  # Add this column
+    sa.Column('product_price', sa.Numeric(10, 2), nullable=False),  # Add this column
+    sa.Column('product_image_url', sa.String(length=255), nullable=True),  # Add this column
+    sa.Column('purchase_quantity', sa.Integer(), nullable=False),  # Updated column name
+    sa.Column('added_at', sa.DateTime(), nullable=True, default=sa.text('CURRENT_TIMESTAMP')),
+    sa.ForeignKeyConstraint(['cart_id'], ['Carts.cart_id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['product_id'], ['Products.product_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('cart_item_id')
     )
     op.create_table('OrderItems',
