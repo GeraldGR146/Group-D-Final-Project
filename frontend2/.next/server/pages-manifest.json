@@ -3,6 +3,6 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/me": "pages/me.js",
-  "/login": "pages/login.js",
-  "/me/new_product": "pages/me/new_product.js"
+  "/me/promotion": "pages/me/promotion.js",
+  "/": "pages/index.js"
 }

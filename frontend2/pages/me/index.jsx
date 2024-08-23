@@ -7,7 +7,7 @@ import Dashboard from './Dashboard';
 import HandleLogout from './Logout';
 import WishlistPage from './wishlist';
 import MyOrders from './my_orders';
-import ShoppingCartPage from './shopping_cart';
+import ShoppingCartPage from '../shopping_cart';
 import Sidebar from './sidebarRev';
 import { useRouter } from 'next/router';
 
@@ -95,15 +95,19 @@ const Profile = () => {
 const MainBody = ({ selectedSection, stores, onDeleteProduct }) => {
     const router = useRouter();
 
-    const handleAddProduct = () => {
+    const handleAddProduct = (store_id) => {
+        sessionStorage.setItem('store_id', store_id);
         router.push('/me/new_product'); 
+    };
+
+    const handleCreatePromotion = (store_id) => {
+        router.push('/me/promotion');
     };
 
     const handleEditProduct = (product_id) => {
         sessionStorage.setItem('product_id', product_id); 
         router.push('/me/update_product'); 
     };
-
 
     const handleDeleteProduct = async (product_id) => {
         try {
@@ -128,12 +132,20 @@ const MainBody = ({ selectedSection, stores, onDeleteProduct }) => {
             <div className="p-4">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">{store.store_name} - Products</h2>
-                    <button
-                        className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
-                        onClick={handleAddProduct}
-                    >
-                        + Add New Product
-                    </button>
+                    <div className="flex space-x-4">
+                        <button
+                            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
+                            onClick={() => handleAddProduct(store.id)} // Pass the store ID
+                        >
+                            + Add New Product
+                        </button>
+                        <button
+                            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700"
+                            onClick={() => handleCreatePromotion(store.id)} // Pass the store ID
+                        >
+                            + Create Promotion
+                        </button>
+                    </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {store.products && store.products.length > 0 ? (
@@ -154,12 +166,13 @@ const MainBody = ({ selectedSection, stores, onDeleteProduct }) => {
                             />
                         ))
                     ) : (
-                        <div>No products available for this store.</div>
+                        <div className="text-center mt-4">You don't have any product.</div>
                     )}
                 </div>
             </div>
         );
     }
+
 
     switch (selectedSection) {
         case 'my_info':
@@ -182,3 +195,4 @@ const MainBody = ({ selectedSection, stores, onDeleteProduct }) => {
 };
 
 export default Profile;
+``
