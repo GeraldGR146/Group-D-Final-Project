@@ -3,7 +3,7 @@ import CategoryCard from '../../components/Card/CategoryCard';
 import BestSeller from './BestSeller';
 import Carousel from './Carousel';
 import HowToOrder from './HowToOrder';
-
+import Footer from '../../components/Footers/Footer'
 
 const Category = () => {
     return (
@@ -22,7 +22,7 @@ const Category = () => {
                 </div>
                 <BestSeller/>
                 <HowToOrder/>
-                
+                <Footer/>
             </div>
         </section>
     );

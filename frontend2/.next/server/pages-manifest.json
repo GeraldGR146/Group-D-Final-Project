@@ -15,6 +15,7 @@
   "/me/create_store_form": "pages/me/create_store_form.js",
   "/me/dashboard": "pages/me/dashboard.js",
   "/me": "pages/me.js",
+<<<<<<< HEAD
   "/me/my_orders": "pages/me/my_orders.js",
   "/me/new_product": "pages/me/new_product.js",
   "/me/profile": "pages/me/profile.js",
@@ -33,4 +34,8 @@
   "/register": "pages/register.js",
   "/shopping_cart": "pages/shopping_cart.js",
   "/_document": "pages/_document.js"
+=======
+  "/login": "pages/login.js",
+  "/me/new_product": "pages/me/new_product.js"
+>>>>>>> parent of a32a809 (compile frontend Ready to Deploy)
 }

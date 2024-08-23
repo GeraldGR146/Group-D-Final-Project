@@ -13,12 +13,12 @@ const Header = () => {
                 Home
                 </Link>
                 <div className="relative group">
-                <Link href="/products" className="hover:text-gray-800 flex items-center">
+                <Link href="/product-info" className="hover:text-gray-800 flex items-center">
                     Product <i className="fas fa-chevron-down ml-1 text-xs"></i>
                 </Link>
                 </div>
-                <Link href="/shopping_cart" className="hover:text-gray-800">
-                Shopping Cart
+                <Link href="#" className="hover:text-gray-800">
+                About
                 </Link>
                 <Link href="#" className="hover:text-gray-800">
                 Blog

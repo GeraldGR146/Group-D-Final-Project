@@ -23,8 +23,7 @@ const CategoryCard = ({
                     <h2 className="text-2xl font-bold text-gray-800">Type Product</h2>
                     <a href="#" className="text-sm text-gray-500 mt-4 inline-block">Explore Items</a>
                 </div>
-                {/* Update the src to point to duck.png */}
-                <img src="assets/detergent.png" alt="Detergent" className="w-24 h-32 object-contain"/>
+                <img src="https://placehold.co/100x150" alt="Ice Cream" className="w-24 h-32 object-cover"/>
             </div>
         </div>
     );

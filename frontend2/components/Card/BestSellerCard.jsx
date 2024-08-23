@@ -3,8 +3,7 @@ import React from 'react';
 const BestSellerCard = ({ product }) => {
     return (
         <div className="bg-white p-4 rounded-lg shadow-lg">
-        <img src="assets/wayang.jpg" alt={product.title} className="w-full h-24 object-contain" />
-        {/* <img src={product.imgSrc} alt={product.title} className="w-full h-24 object-cover" /> */}
+        <img src={product.imgSrc} alt={product.title} className="w-full h-24 object-cover" />
         <h3 className="text-md font-bold text-gray-800 mt-4">{product.title}</h3>
         <p className="text-sm text-gray-500">{product.description}</p>
         <div className="flex items-center space-x-2 mt-2">
