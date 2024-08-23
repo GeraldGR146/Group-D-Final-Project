@@ -14,28 +14,33 @@ def clear_cart(session, user_id):
             session.delete(item)
         session.commit()
 
+def get_user_cart(session, user_id):
+    cart = session.query(Cart).filter_by(consumer_id=user_id).first()
+    if not cart:
+        cart = Cart(cart_id=Cart.create_unique_cart_id(session), consumer_id=user_id)
+        session.add(cart)
+        session.commit()
+    return cart
+
 @order_bp.route('/orders', methods=['GET'])
 @jwt_required()
 def get_orders():
     user_id = get_jwt_identity()['user_id']
     orders = Order.query.filter_by(consumer_id=user_id).all()
-    return jsonify([order.to_dict() for order in orders])
+    return jsonify([order.to_dict() for order in orders]), 200
 
 @order_bp.route('/orders', methods=['POST'])
 @jwt_required()
 def create_order():
     session = get_session()
     consumer_id = get_jwt_identity()['user_id']
-    delivery_method = request.json.get('delivery_method', 'Delivery')  # Default to 'Delivery' if not provided
+    delivery_method = request.json.get('delivery_method', 'Delivery')
 
     if delivery_method not in ['Pickup', 'Delivery']:
         return jsonify({'error': 'Invalid delivery method'}), 400
 
     try:
-        cart = session.query(Cart).filter_by(consumer_id=consumer_id).first()
-        if not cart:
-            return jsonify({'error': 'Cart not found or does not belong to the user'}), 404
-
+        cart = get_user_cart(session, consumer_id)
         cart_items = session.query(CartItem).filter_by(cart_id=cart.cart_id).all()
         if not cart_items:
             return jsonify({'error': 'Cart is empty'}), 400
@@ -72,22 +77,24 @@ def create_order():
             if not product:
                 return jsonify({'error': f'Product with ID {item.product_id} not found'}), 404
 
-            price = product.price * item.quantity
+            price = product.price * item.purchase_quantity
             total_amount += price
 
             order_item = OrderItem(
                 order_item_id=OrderItem.generate_item_id(),
                 order_id=order_id,
                 product_id=item.product_id,
-                quantity=item.quantity,
+                quantity=item.purchase_quantity,
                 price=price
             )
             session.add(order_item)
 
+        if delivery_method == 'Delivery':
+            total_amount += 5000
+
         new_order.total_amount = total_amount
         session.commit()
 
-        # Clear the cart after successful order creation
         clear_cart(session, consumer_id)
 
         return jsonify(new_order.to_dict()), 201
@@ -97,7 +104,6 @@ def create_order():
     finally:
         session.close()
 
-
 @order_bp.route('/orders/<string:order_id>/cancel', methods=['PUT'])
 @jwt_required()
 def cancel_order(order_id):
@@ -105,7 +111,7 @@ def cancel_order(order_id):
     order = Order.query.filter_by(order_id=order_id, consumer_id=user_id).first()
     if order is None:
         return jsonify({'error': 'Order not found'}), 404
-    
+
     if order.status == 'Completed':
         return jsonify({'error': 'Completed orders cannot be cancelled'}), 400
 
@@ -115,7 +121,7 @@ def cancel_order(order_id):
         return jsonify(order.to_dict()), 200
     except SQLAlchemyError as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)}), 500
 
 @order_bp.route('/orders/<string:order_id>', methods=['PUT'])
 @jwt_required()
@@ -123,37 +129,33 @@ def update_order(order_id):
     user_id = get_jwt_identity()['user_id']
     user_role = get_jwt_identity()['role']
 
-    # Fetch the order
     order = Order.query.filter_by(order_id=order_id).first()
     if order is None:
         return jsonify({'error': 'Order not found'}), 404
 
-    # Prevent updates if the order is already Completed or Cancelled
     if order.status in ['Completed', 'Cancelled']:
         return jsonify({'error': f'Cannot update an order that is already {order.status}'}), 400
 
-    # If the user is the consumer
     if user_role == 'consumer':
         if order.consumer_id != user_id:
             return jsonify({'error': 'You do not have permission to update this order'}), 403
-        
-        # Update delivery method
+
         delivery_method = request.json.get('delivery_method')
         if delivery_method:
             if delivery_method not in ['Pickup', 'Delivery']:
                 return jsonify({'error': 'Invalid delivery method'}), 400
             order.delivery_method = delivery_method
 
-    # If the user is the seller
     elif user_role == 'seller':
         if order.seller_id != user_id:
             return jsonify({'error': 'You do not have permission to update this order'}), 403
 
-        # Update order status
         status = request.json.get('status')
         if status:
             if status not in ['Processing', 'Shipped', 'Delivered', 'Completed', 'Cancelled']:
                 return jsonify({'error': 'Invalid status'}), 400
+            if status in ['Pending', 'Paid', 'Completed', 'Cancelled']:
+                return jsonify({'error': 'Status cannot be updated to the specified value'}), 400
             order.status = status
 
     else:
@@ -164,7 +166,7 @@ def update_order(order_id):
         return jsonify(order.to_dict()), 200
     except SQLAlchemyError as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)}), 500
 
 @order_bp.route('/orders/<string:order_id>', methods=['GET'])
 @jwt_required()
@@ -172,19 +174,16 @@ def get_order_by_id(order_id):
     user_id = get_jwt_identity()['user_id']
     user_role = get_jwt_identity()['role']
 
-    # Fetch the order by order_id
     order = Order.query.filter_by(order_id=order_id).first()
-    
     if order is None:
         return jsonify({'error': 'Order not found'}), 404
-    
-    # Ensure that the user has the right to access this order
+
     if user_role == 'consumer' and order.consumer_id != user_id:
         return jsonify({'error': 'You do not have permission to view this order'}), 403
-    
+
     if user_role == 'seller' and order.seller_id != user_id:
         return jsonify({'error': 'You do not have permission to view this order'}), 403
-    
+
     return jsonify(order.to_dict()), 200
 
 @order_bp.route('/orders/status/<string:status>', methods=['GET'])
@@ -193,12 +192,10 @@ def get_orders_by_status(status):
     user_id = get_jwt_identity()['user_id']
     user_role = get_jwt_identity()['role']
 
-    # Validate the status input
     valid_statuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Completed', 'Cancelled']
     if status not in valid_statuses:
         return jsonify({'error': 'Invalid status'}), 400
 
-    # Fetch orders based on user role
     if user_role == 'consumer':
         orders = Order.query.filter_by(consumer_id=user_id, status=status).all()
     elif user_role == 'seller':
@@ -206,5 +203,4 @@ def get_orders_by_status(status):
     else:
         return jsonify({'error': 'Invalid user role'}), 403
 
-    # Return the list of orders
     return jsonify([order.to_dict() for order in orders]), 200
