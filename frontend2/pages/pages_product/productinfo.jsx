@@ -1,10 +1,10 @@
 //product detail
 
 import React from 'react';
-import ProductService from '../services/ProductService';
-import Rating from '../Review/Rating';
-import CommentForm from '../Review/CommentForm';
-import ReviewList from '../Review/ReviewList';
+import productServices from './productServices';
+// import Rating from '../Review/Rating';
+// import CommentForm from '../Review/CommentForm';
+import ReviewList from '../../components/reviewList'
 
 class ProductInfo extends React.Component {
   constructor(props) {
@@ -60,8 +60,8 @@ class ProductInfo extends React.Component {
             </div>
             <div className="mt-4">
               <span>        
-                <Rating rating={this.state.rating} onRate={this.handleRatingChange} />
-                <CommentForm rating={this.state.rating} onSubmit={this.handleReviewSubmit} />
+                {/* <Rating rating={this.state.rating} onRate={this.handleRatingChange} />
+                <CommentForm rating={this.state.rating} onSubmit={this.handleReviewSubmit} /> */}
                 <ReviewList reviews={this.state.reviews} />
               </span>
             </div>

@@ -3,7 +3,6 @@ import { fetchUserProfile, fetchStores, fetchProductsByStore, deleteProduct } fr
 import SellerCard from '../../components/Card/SellerCard';
 import Transaction from './transactions_list';
 import ProfilePage from './profile';
-import Dashboard from './Dashboard';
 import HandleLogout from './Logout';
 import WishlistPage from './wishlist';
 import MyOrders from './my_orders';
