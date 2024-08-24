@@ -1,31 +1,27 @@
 import React from 'react';
 
 const CategoryCard = ({ 
-    product_id, 
-    seller_id, 
-    store_id, 
     name, 
     description, 
-    price, 
-    quantity, 
-    product_type, 
-    image_url,
-    onAddToCart,
-    onAddToWishlist,
-    location,
-    store_name
+    image_url, 
+    onAddToCart, 
+    onAddToWishlist, 
+    location, 
+    store_name 
 }) => {
     return (
-        <div>
-            <div className="bg-white p-6 rounded-lg shadow-lg flex items-center space-x-6 max-w-sm">
-                <div>
-                    <p className="text-gray-500 text-sm">Comodity</p>
-                    <h2 className="text-2xl font-bold text-gray-800">Type Product</h2>
-                    <a href="#" className="text-sm text-gray-500 mt-4 inline-block">Explore Items</a>
-                </div>
-                {/* Update the src to point to duck.png */}
-                <img src="assets/detergent.png" alt="Detergent" className="w-24 h-32 object-contain"/>
+        <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 max-w-xs sm:max-w-sm mx-auto">
+            <div className="text-center sm:text-left">
+                <p className="text-gray-500 text-xs sm:text-sm">{location}</p>
+                <h2 className="text-lg sm:text-2xl font-bold text-gray-800">{name}</h2>
+                <p className="text-sm text-gray-500 mt-2">{description}</p>
+                <a href="products" className="text-xs sm:text-sm text-blue-500 mt-4 inline-block">Explore Items</a>
             </div>
+            <img 
+                src={image_url || "assets/Duren.jpg"} 
+                alt={name} 
+                className="w-20 sm:w-24 h-24 sm:h-32 object-contain"
+            />
         </div>
     );
 };
