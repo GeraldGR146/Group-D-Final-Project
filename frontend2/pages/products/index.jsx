@@ -66,14 +66,14 @@ const ProductList = () => {
                     All
                 </button>
                 <button 
-                    className={`px-4 py-2 ${categoryFilter === 'Standard' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                    onClick={() => handleCategoryFilterClick('Standard')}
+                    className={`px-4 py-2 ${categoryFilter === 'standard' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                    onClick={() => handleCategoryFilterClick('standard')}
                 >
                     Standard
                 </button>
                 <button 
-                    className={`px-4 py-2 ${categoryFilter === 'Premium' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                    onClick={() => handleCategoryFilterClick('Premium')}
+                    className={`px-4 py-2 ${categoryFilter === 'premium' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                    onClick={() => handleCategoryFilterClick('premium')}
                 >
                     Premium
                 </button>
