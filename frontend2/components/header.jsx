@@ -7,7 +7,8 @@ const Header = () => {
         <header className="bg-gray-100">
         <div className="w-[1200px] mx-auto h-[60px] flex items-center justify-between border-b border-gray-200 bg-white">
             <div className="flex items-center space-x-8">
-            <h1 className="text-2xl font-bold text-gray-800">App Name</h1>
+            <img src="/assets/logo.png" alt="Logo" className="w-fit h-10 rounded-full object-fit"></img>
+            <h1 className="text-2xl font-bold text-gray-800">Localnect</h1>
             <nav className="flex space-x-6 text-gray-600">
                 <Link href="/" className="hover:text-gray-800">
                 Home
