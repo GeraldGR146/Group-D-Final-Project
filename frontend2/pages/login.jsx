@@ -47,8 +47,8 @@ const LoginPage = () => {
         <div className="min-h-screen flex">
             <div className="hidden lg:block w-1/2 bg-yellow-500">
                 <img
-                    src="your-image-source-here.jpg"
-                    alt="Group of people"
+                    src="assets/logo-color.png"
+                    alt="localnect"
                     className="h-full w-full object-cover"
                 />
             </div>
