@@ -2,8 +2,9 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/me": "pages/me.js",
+  "/": "pages/index.js",
+  "/products": "pages/products.js",
   "/shopping_cart": "pages/shopping_cart.js",
-  "/me/promotion": "pages/me/promotion.js",
-  "/products": "pages/products.js"
+  "/me": "pages/me.js",
+  "/register": "pages/register.js"
 }
