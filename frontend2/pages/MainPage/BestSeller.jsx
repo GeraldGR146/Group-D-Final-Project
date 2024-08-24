@@ -71,7 +71,7 @@ const BestSeller = () => {
                 <p className="text-sm text-gray-700 font-bold">FURNITURE</p>
                 <p className="text-xs text-gray-600 mt-1">5 Items</p>
             </div>
-            <img src="https://placehold.co/150x300" alt="Furniture" className="rounded-lg mt-6" />
+            <img src="assets/chair.jpg" alt="Furniture" className="rounded-lg mt-6 object-contain" />
             </div>
 
             {/* Right Bestseller Products Section */}
