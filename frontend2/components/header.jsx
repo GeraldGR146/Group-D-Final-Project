@@ -21,14 +21,11 @@ const Header = () => {
                 <Link href="/shopping_cart" className="hover:text-gray-800">
                 Shopping Cart
                 </Link>
-                <Link href="#" className="hover:text-gray-800">
-                Blog
+                <Link href="/me" className="hover:text-gray-800">
+                Profile
                 </Link>
                 <Link href="#" className="hover:text-gray-800">
                 Contact
-                </Link>
-                <Link href="#" className="hover:text-gray-800">
-                Pages
                 </Link>
             </nav>
             </div>
