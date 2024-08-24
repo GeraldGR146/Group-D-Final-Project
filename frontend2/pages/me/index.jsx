@@ -1,9 +1,10 @@
+// /me/index
+
 import React, { useEffect, useState } from 'react';
 import { fetchUserProfile, fetchStores, fetchProductsByStore, deleteProduct } from '../../components/Services/UserService';
 import SellerCard from '../../components/Card/SellerCard';
 import Transaction from './transactions_list';
 import ProfilePage from './profile';
-import Dashboard from './dashboard';
 import HandleLogout from './Logout';
 import WishlistPage from './wishlist';
 import MyOrders from './my_orders';
@@ -96,6 +97,7 @@ const MainBody = ({ selectedSection, stores, onDeleteProduct }) => {
     const router = useRouter();
 
     const handleAddProduct = (store_id) => {
+        sessionStorage.setItem('store_id', store_id);
         router.push('/me/new_product'); 
     };
 
@@ -142,7 +144,7 @@ const MainBody = ({ selectedSection, stores, onDeleteProduct }) => {
                             className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700"
                             onClick={() => handleCreatePromotion(store.id)} // Pass the store ID
                         >
-                            + Create Promotion
+                            Manage Promotion
                         </button>
                     </div>
                 </div>
@@ -176,8 +178,8 @@ const MainBody = ({ selectedSection, stores, onDeleteProduct }) => {
     switch (selectedSection) {
         case 'my_info':
             return <ProfilePage />;
-        case 'dashboard':
-            return <Dashboard />;
+        // case 'dashboard':
+        //     return <Dashboard />;
         case 'transactions':
             return <Transaction transactions={stores.transactions} />;
         case 'wishlist':

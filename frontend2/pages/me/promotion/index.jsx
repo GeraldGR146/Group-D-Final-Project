@@ -1,155 +1,65 @@
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
 import axios from 'axios';
 
-const PromotionForm = () => {
+const PromotionsTable = () => {
+    const [promotions, setPromotions] = useState([]);
     const router = useRouter();
 
-    const initialValues = {
-        code: '',
-        discount_percentage: '',
-        start_date: '',
-        end_date: ''
-    };
-
-    const validationSchema = Yup.object({
-        code: Yup.string().required('Promotion code is required'),
-        discount_percentage: Yup.number()
-            .min(0, 'Discount percentage must be at least 0')
-            .max(100, 'Discount percentage must be at most 100')
-            .required('Discount percentage is required'),
-        start_date: Yup.date()
-            .nullable()
-            .transform((curr, orig) => orig === '' ? null : curr)
-            .required('Start date is required'),
-        end_date: Yup.date()
-            .nullable()
-            .transform((curr, orig) => orig === '' ? null : curr)
-            .required('End date is required')
-            
-    });
-
-    const onSubmit = async (values, { setSubmitting }) => {
-        setSubmitting(true);
-        const store_id = sessionStorage.getItem('store_id');
-        const token = sessionStorage.getItem('access_token');
-
-        try {
-            const response = await axios.post(
-                `http://127.0.0.1:5000/stores/${store_id}/promotions`,
-                values,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-
-            if (response.status === 201) {
-                alert('Promotion created successfully');
-                router.push('/me');
-            }
-        } catch (error) {
-            console.error('Error creating promotion:', error);
-            alert('Failed to create promotion');
-        } finally {
-            setSubmitting(false);
+    useEffect(() => {
+        const storeId = sessionStorage.getItem('store_id');
+        
+        if (storeId) {
+            axios.get(`http://127.0.0.1:5000/stores/${storeId}/promotions`)
+                .then(response => {
+                    console.log('Fetched promotions:', response.data);
+                    setPromotions(response.data);
+                })
+                .catch(error => console.error('Error fetching promotions:', error));
+        } else {
+            console.error('No store_id found in sessionStorage');
         }
+    }, []);
+
+    const handleCreateNewPromotion = () => {
+        router.push('/me/promotion/create_new_promotion');
     };
 
     return (
-        <div className="max-w-md mx-auto p-6">
-            <h2 className="text-xl font-semibold mb-4">Create a New Promotion</h2>
-            <Formik
-                initialValues={initialValues}
-                validationSchema={validationSchema}
-                onSubmit={onSubmit}
-            >
-                {({ isSubmitting }) => (
-                    <Form>
-                        <div className="mb-4">
-                            <label htmlFor="code" className="block text-sm font-medium">
-                                Promotion Code
-                            </label>
-                            <Field
-                                type="text"
-                                id="code"
-                                name="code"
-                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                            />
-                            <ErrorMessage
-                                name="code"
-                                component="div"
-                                className="text-red-500 text-sm"
-                            />
-                        </div>
-
-                        <div className="mb-4">
-                            <label htmlFor="discount_percentage" className="block text-sm font-medium">
-                                Discount Percentage
-                            </label>
-                            <Field
-                                type="number"
-                                id="discount_percentage"
-                                name="discount_percentage"
-                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                            />
-                            <ErrorMessage
-                                name="discount_percentage"
-                                component="div"
-                                className="text-red-500 text-sm"
-                            />
-                        </div>
-
-                        <div className="mb-4">
-                            <label htmlFor="start_date" className="block text-sm font-medium">
-                                Start Date
-                            </label>
-                            <Field
-                                type="date"
-                                id="start_date"
-                                name="start_date"
-                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                            />
-                            <ErrorMessage
-                                name="start_date"
-                                component="div"
-                                className="text-red-500 text-sm"
-                            />
-                        </div>
-
-                        <div className="mb-4">
-                            <label htmlFor="end_date" className="block text-sm font-medium">
-                                End Date
-                            </label>
-                            <Field
-                                type="date"
-                                id="end_date"
-                                name="end_date"
-                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                            />
-                            <ErrorMessage
-                                name="end_date"
-                                component="div"
-                                className="text-red-500 text-sm"
-                            />
-                        </div>
-
-                        <div className="flex justify-end">
-                            <button
-                                type="submit"
-                                className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? 'Submitting...' : 'Create Promotion'}
-                            </button>
-                        </div>
-                    </Form>
-                )}
-            </Formik>
+        <div className="container mx-auto p-4">
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Store Promotions</h2>
+                <button 
+                    onClick={handleCreateNewPromotion} 
+                    className="bg-blue-500 text-white py-2 px-4 rounded"
+                >
+                    New Promotion Code
+                </button>
+            </div>
+            <table className="min-w-full bg-white">
+                <thead>
+                    <tr>
+                        <th className="py-2 px-4 border-b">Promotion ID</th>
+                        <th className="py-2 px-4 border-b">Code</th>
+                        <th className="py-2 px-4 border-b">Discount (%)</th>
+                        <th className="py-2 px-4 border-b">Start Date</th>
+                        <th className="py-2 px-4 border-b">End Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {promotions.map((promotion) => (
+                        <tr key={promotion.promotion_id}>
+                            <td className="py-2 px-4 border-b">{promotion.promotion_id}</td>
+                            <td className="py-2 px-4 border-b">{promotion.code}</td>
+                            <td className="py-2 px-4 border-b">{promotion.discount_percentage}</td>
+                            <td className="py-2 px-4 border-b">{promotion.start_date}</td>
+                            <td className="py-2 px-4 border-b">{promotion.end_date}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 };
 
-export default PromotionForm;
+export default PromotionsTable;
